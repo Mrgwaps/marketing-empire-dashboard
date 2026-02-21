@@ -299,7 +299,148 @@
             display: flex;
             gap: 12px;
         }
-    </style>
+    
+        /* Agent Brain Styles */
+        .agent-brain {
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .agent-brain h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .memory-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .memory-section h4 {
+            color: #fff;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+        }
+
+        .memory-buffer {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .memory-message {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            align-items: flex-start;
+        }
+
+        .memory-message.user {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .memory-message.agent {
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .memory-role {
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .memory-text {
+            flex: 1;
+            color: #fff;
+            font-size: 0.9em;
+        }
+
+        .memory-time {
+            color: #888;
+            font-size: 0.8em;
+            flex-shrink: 0;
+        }
+
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .memory-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.85em;
+        }
+
+        .stat-value {
+            color: #00d4ff;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .clear-memory-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-memory-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-brain {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-brain:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+</style>
 </head>
 <body>
     <div class="container">
@@ -443,79 +584,6 @@
                 status: 'active'
             }
         ];
-
-
-        // Cached voice responses for instant playback (quick greetings)
-        const voiceCache = {
-            'sophia': 'https://temp.composio.dev/elevenlabs/sophia_greeting.mp3', // "Hey! I'm Sophia, ready to create content that converts!"
-            'marcus': 'https://temp.composio.dev/elevenlabs/marcus_greeting.mp3', // "Marcus here. Let's analyze the data and optimize performance."
-            'isabella': 'https://temp.composio.dev/elevenlabs/isabella_greeting.mp3', // "Hi! Isabella ready to engage our community!"
-            'ava': 'https://temp.composio.dev/elevenlabs/ava_greeting.mp3', // "Ava here! Email automation is my specialty!"
-            'daniel': 'https://temp.composio.dev/elevenlabs/daniel_greeting.mp3' // "Daniel reporting in. Let's run some high-impact campaigns!"
-        };
-
-
-        // Play cached voice + generate live task speech
-        async function playAgentVoice(agentId) {
-            const agent = agents.find(a => a.id === agentId);
-            if (!agent) return;
-
-            // Play cached greeting instantly for quick feedback
-            const cachedAudio = new Audio(voiceCache[agentId]);
-            cachedAudio.volume = 0.8;
-            cachedAudio.play().catch(err => console.log('Cached audio play failed:', err));
-
-            // In parallel, generate live task speech via ElevenLabs API
-            try {
-                const nextTask = agent.tasks.find(t => t.status === 'in-progress') || agent.tasks[0];
-                if (!nextTask) return;
-
-                // Personality-based task announcement
-                const personalities = {
-                    'sophia': `Here's what I'm working on: ${nextTask.title}. ${nextTask.description}`,
-                    'marcus': `Current focus: ${nextTask.title}. ${nextTask.description}`,
-                    'isabella': `On it! ${nextTask.title}. ${nextTask.description}`,
-                    'ava': `Working on: ${nextTask.title}. ${nextTask.description}`,
-                    'daniel': `Let's go! ${nextTask.title}. ${nextTask.description}`
-                };
-
-                const taskText = personalities[agentId] || nextTask.description;
-
-                // Generate speech via ElevenLabs (this happens in background while greeting plays)
-                const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${agent.voiceId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'audio/mpeg',
-                        'Content-Type': 'application/json',
-                        'xi-api-key': '37b2d7684ea1b8f85b21cf63b5895567'
-                    },
-                    body: JSON.stringify({
-                        text: taskText,
-                        model_id: 'eleven_monolingual_v1',
-                        voice_settings: {
-                            stability: 0.5,
-                            similarity_boost: 0.75
-                        }
-                    })
-                });
-
-                if (response.ok) {
-                    const audioBlob = await response.blob();
-                    const audioUrl = URL.createObjectURL(audioBlob);
-
-                    // Queue the task speech to play after greeting finishes
-                    cachedAudio.addEventListener('ended', () => {
-                        const taskAudio = new Audio(audioUrl);
-                        taskAudio.volume = 0.8;
-                        taskAudio.play().catch(err => console.log('Task audio play failed:', err));
-                    });
-                }
-            } catch (err) {
-                console.log('Live task speech generation failed:', err);
-                // No problem - cached greeting already played
-            }
-        }
-
 
         // Chat history (in-memory storage)
         const chatHistory = {};
@@ -788,6 +856,264 @@
 
         // Initialize on load
         window.onload = init;
-    </script>
+    
+        // ============================================================
+        // VOICE FEATURE - Speak when card clicked
+        // ============================================================
+        const ELEVENLABS_API_KEY = '37b2d7684ea1b8f85b21cf63b5895567';
+        const audioCache = new Map(); // Cache for instant playback
+
+        // Cached greetings for instant response
+        const cachedGreetings = {
+            sophia: "Hi! I'm Sophia, your Content & SEO Strategist. Let me tell you what I'm working on...",
+            marcus: "Hey there! Marcus here, your Data & Analytics Lead. Here's what's on my radar...",
+            isabella: "Hello! Isabella, Social Media Manager at your service. My current focus is...",
+            ava: "Hi! I'm Ava, Email & Automation Specialist. Let me share my priorities...",
+            daniel: "What's up! Daniel here, Campaign & Ads Specialist. Here's what I'm tackling..."
+        };
+
+        // Agent voices (ElevenLabs voice IDs)
+        const agentVoices = {
+            sophia: 'EXAVITQu4vr4xnSDxMaL', // Sarah - professional female
+            marcus: 'TxGEqnHWrfWFTfGW9XjX', // Josh - confident male
+            isabella: '21m00Tcm4TlvDq8ikWAM', // Rachel - warm female
+            ava: 'pNInz6obpgDQGcFmaJgB', // Bella - energetic female
+            daniel: 'yoZ06aMxZJJ28mfd3POQ' // Antoni - professional male
+        };
+
+        // Speak function using ElevenLabs
+        async function speakText(text, voiceId) {
+            // Check cache first for instant playback
+            const cacheKey = text + voiceId;
+            if (audioCache.has(cacheKey)) {
+                const audio = audioCache.get(cacheKey).cloneNode();
+                audio.play();
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'audio/mpeg',
+                        'Content-Type': 'application/json',
+                        'xi-api-key': ELEVENLABS_API_KEY
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        model_id: 'eleven_monolingual_v1',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75
+                        }
+                    })
+                });
+
+                if (!response.ok) throw new Error('Speech API failed');
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+
+                // Cache for next time
+                audioCache.set(cacheKey, audio.cloneNode());
+
+                audio.play();
+            } catch (error) {
+                console.error('Speech failed:', error);
+            }
+        }
+
+        // Enhanced expandAgent with voice + brain feature
+        function expandAgent(agentId) {
+            const card = document.getElementById(agentId);
+            const allCards = document.querySelectorAll('.agent-card');
+
+            // Collapse all others
+            allCards.forEach(c => {
+                if (c.id !== agentId) {
+                    c.classList.remove('expanded');
+                    const details = c.querySelector('.agent-details');
+                    const brain = c.querySelector('.agent-brain');
+                    if (details) details.style.display = 'none';
+                    if (brain) brain.style.display = 'none';
+                }
+            });
+
+            // Toggle this card
+            const isExpanding = !card.classList.contains('expanded');
+            card.classList.toggle('expanded');
+
+            const details = card.querySelector('.agent-details');
+            const brain = card.querySelector('.agent-brain');
+
+            if (isExpanding) {
+                if (details) details.style.display = 'block';
+                if (brain) brain.style.display = 'none'; // Hide brain initially
+
+                // VOICE: Play cached greeting instantly, then get full task
+                const greeting = cachedGreetings[agentId];
+                const voiceId = agentVoices[agentId];
+
+                if (greeting && voiceId) {
+                    // Instant cached response
+                    speakText(greeting, voiceId);
+
+                    // Parallel: fetch full next task and speak
+                    setTimeout(() => {
+                        const fullTask = getAgentNextTask(agentId);
+                        if (fullTask !== greeting) {
+                            speakText(fullTask, voiceId);
+                        }
+                    }, 100);
+                }
+            } else {
+                if (details) details.style.display = 'none';
+                if (brain) brain.style.display = 'none';
+            }
+        }
+
+        // Get agent's next task in their personality
+        function getAgentNextTask(agentId) {
+            const tasks = {
+                sophia: "I'm crafting 3 high-converting Reddit comments for our next automation run, researching top luxury skincare posts from the last 24 hours to find perfect opportunities!",
+                marcus: "I'm monitoring our Reddit automation performance to optimize timing, tracking landing page traffic sources in Airtable, and setting up conversion tracking from bit.ly clicks to email signups!",
+                isabella: "I'm identifying 5 high-traffic skincare threads for manual karma building and creating an engagement strategy for r/30PlusSkinCare to boost our community presence!",
+                ava: "I'm verifying our Brevo email sequences trigger properly on signup, testing the full funnel from landing page through all 5 emails to affiliate links, and optimizing subject lines for higher open rates!",
+                daniel: "I'm researching free traffic sources beyond Reddit like Quora, forums, and Facebook groups, identifying Amazon affiliate products with the highest commission rates, and creating a promotional calendar for our multi-platform traffic push!"
+            };
+            return tasks[agentId] || cachedGreetings[agentId];
+        }
+
+        // ============================================================
+        // AGENT BRAIN FEATURE - Memory Viewer
+        // ============================================================
+        function toggleAgentBrain(agentId) {
+            const card = document.getElementById(agentId);
+            const details = card.querySelector('.agent-details');
+            const brain = card.querySelector('.agent-brain');
+
+            if (brain.style.display === 'block') {
+                // Hide brain, show details
+                brain.style.display = 'none';
+                details.style.display = 'block';
+            } else {
+                // Show brain, hide details
+                details.style.display = 'none';
+                brain.style.display = 'block';
+                loadAgentMemory(agentId);
+            }
+        }
+
+        function loadAgentMemory(agentId) {
+            // Simulate loading agent memory (last 10 exchanges, learned skills, stats)
+            const memoryData = {
+                sophia: {
+                    buffer: [
+                        { role: 'user', content: 'Create Reddit comments for skincare posts', time: '2 hours ago' },
+                        { role: 'agent', content: 'Generated 3 high-converting comments targeting luxury beauty enthusiasts', time: '2 hours ago' },
+                        { role: 'user', content: 'Research top-performing posts', time: '4 hours ago' },
+                        { role: 'agent', content: 'Analyzed 50 posts, identified 12 high-opportunity threads', time: '4 hours ago' }
+                    ],
+                    skills: ['SEO optimization', 'Content strategy', 'Reddit engagement', 'Luxury beauty expertise'],
+                    stats: { tasks: 47, success: 45, tokens: 125000 }
+                },
+                marcus: {
+                    buffer: [
+                        { role: 'user', content: 'Track Reddit automation performance', time: '1 hour ago' },
+                        { role: 'agent', content: 'Updated Airtable with 12 new data points, engagement up 23%', time: '1 hour ago' },
+                        { role: 'user', content: 'Set up conversion tracking', time: '3 hours ago' },
+                        { role: 'agent', content: 'Configured bit.ly → email signup funnel tracking', time: '3 hours ago' }
+                    ],
+                    skills: ['Data analysis', 'Airtable automation', 'Performance tracking', 'Conversion optimization'],
+                    stats: { tasks: 52, success: 51, tokens: 98000 }
+                },
+                isabella: {
+                    buffer: [
+                        { role: 'user', content: 'Find high-traffic threads', time: '30 min ago' },
+                        { role: 'agent', content: 'Identified 5 threads with 200+ comments, perfect for engagement', time: '30 min ago' },
+                        { role: 'user', content: 'Create engagement strategy', time: '5 hours ago' },
+                        { role: 'agent', content: 'Built 7-day strategy for r/30PlusSkinCare community growth', time: '5 hours ago' }
+                    ],
+                    skills: ['Social media strategy', 'Community management', 'Reddit expertise', 'Engagement tactics'],
+                    stats: { tasks: 38, success: 37, tokens: 87000 }
+                },
+                ava: {
+                    buffer: [
+                        { role: 'user', content: 'Test email funnel', time: '1 hour ago' },
+                        { role: 'agent', content: 'Tested full sequence, all 5 emails delivering correctly', time: '1 hour ago' },
+                        { role: 'user', content: 'Optimize subject lines', time: '6 hours ago' },
+                        { role: 'agent', content: 'A/B tested 10 variations, increased open rate by 18%', time: '6 hours ago' }
+                    ],
+                    skills: ['Email automation', 'Brevo expertise', 'Funnel optimization', 'A/B testing'],
+                    stats: { tasks: 43, success: 42, tokens: 102000 }
+                },
+                daniel: {
+                    buffer: [
+                        { role: 'user', content: 'Research traffic sources', time: '2 hours ago' },
+                        { role: 'agent', content: 'Found 8 new platforms: Quora, Beauty forums, FB groups', time: '2 hours ago' },
+                        { role: 'user', content: 'Find high-commission products', time: '4 hours ago' },
+                        { role: 'agent', content: 'Identified 15 luxury products with 10%+ commission rates', time: '4 hours ago' }
+                    ],
+                    skills: ['Traffic generation', 'Affiliate marketing', 'Campaign planning', 'Multi-platform strategy'],
+                    stats: { tasks: 35, success: 34, tokens: 79000 }
+                }
+            };
+
+            const data = memoryData[agentId];
+            const memoryContent = document.querySelector(`#${agentId} .memory-content`);
+
+            memoryContent.innerHTML = `
+                <div class="memory-section">
+                    <h4>📝 Memory Buffer (Last ${data.buffer.length} exchanges)</h4>
+                    <div class="memory-buffer">
+                        ${data.buffer.map(msg => `
+                            <div class="memory-message ${msg.role}">
+                                <span class="memory-role">${msg.role === 'user' ? '👤' : '🤖'}</span>
+                                <span class="memory-text">${msg.content}</span>
+                                <span class="memory-time">${msg.time}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="memory-section">
+                    <h4>🧠 Learned Skills</h4>
+                    <div class="skills-list">
+                        ${data.skills.map(skill => `<span class="skill-badge">${skill}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div class="memory-section">
+                    <h4>📊 Memory Statistics</h4>
+                    <div class="memory-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Tasks Completed:</span>
+                            <span class="stat-value">${data.stats.tasks}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Success Rate:</span>
+                            <span class="stat-value">${((data.stats.success / data.stats.tasks) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Tokens Used:</span>
+                            <span class="stat-value">${data.stats.tokens.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="clear-memory-btn" onclick="clearAgentMemory('${agentId}')">
+                    🗑️ Clear Memory
+                </button>
+            `;
+        }
+
+        function clearAgentMemory(agentId) {
+            if (confirm(`Clear all memory for ${agentId.charAt(0).toUpperCase() + agentId.slice(1)}?`)) {
+                alert('Memory cleared! (Demo mode - in production this would reset agent memory)');
+                toggleAgentBrain(agentId); // Close brain view
+            }
+        }
+</script>
 </body>
 </html>
