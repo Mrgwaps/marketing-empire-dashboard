@@ -1543,5 +1543,1003 @@
         initDashboard();
         setupAutoRefresh(5);
     </script>
+
+    <!-- API Manager Module -->
+    <script>
+
+/**
+ * Marketing Empire API Manager
+ * Handles all external API integrations with intelligent caching, rate limiting, and error handling
+ * Uses localStorage as a fake Redis for client-side caching
+ */
+
+class FakeRedis {
+    constructor(prefix = 'redis:') {
+        this.prefix = prefix;
+    }
+
+    set(key, value, ttlSeconds = 3600) {
+        const data = {
+            value: value,
+            expires: Date.now() + (ttlSeconds * 1000)
+        };
+        localStorage.setItem(this.prefix + key, JSON.stringify(data));
+    }
+
+    get(key) {
+        const item = localStorage.getItem(this.prefix + key);
+        if (!item) return null;
+
+        const data = JSON.parse(item);
+        if (Date.now() > data.expires) {
+            this.del(key);
+            return null;
+        }
+        return data.value;
+    }
+
+    del(key) {
+        localStorage.removeItem(this.prefix + key);
+    }
+
+    exists(key) {
+        return this.get(key) !== null;
+    }
+
+    keys(pattern) {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith(this.prefix)) {
+                const cleanKey = key.substring(this.prefix.length);
+                if (pattern === '*' || cleanKey.includes(pattern.replace('*', ''))) {
+                    keys.push(cleanKey);
+                }
+            }
+        }
+        return keys;
+    }
+
+    flushall() {
+        const keys = this.keys('*');
+        keys.forEach(key => this.del(key));
+    }
+
+    ttl(key) {
+        const item = localStorage.getItem(this.prefix + key);
+        if (!item) return -2;
+
+        const data = JSON.parse(item);
+        const remaining = Math.floor((data.expires - Date.now()) / 1000);
+        return remaining > 0 ? remaining : -1;
+    }
+}
+
+class RateLimiter {
+    constructor(redis, maxRequests = 60, windowSeconds = 60) {
+        this.redis = redis;
+        this.maxRequests = maxRequests;
+        this.windowSeconds = windowSeconds;
+    }
+
+    async checkLimit(apiName) {
+        const key = `ratelimit:${apiName}`;
+        const current = this.redis.get(key) || { count: 0, resetTime: Date.now() + (this.windowSeconds * 1000) };
+
+        if (Date.now() > current.resetTime) {
+            current.count = 0;
+            current.resetTime = Date.now() + (this.windowSeconds * 1000);
+        }
+
+        if (current.count >= this.maxRequests) {
+            const waitTime = Math.ceil((current.resetTime - Date.now()) / 1000);
+            throw new Error(`Rate limit exceeded for ${apiName}. Wait ${waitTime}s`);
+        }
+
+        current.count++;
+        this.redis.set(key, current, this.windowSeconds);
+        return true;
+    }
+
+    getRemainingRequests(apiName) {
+        const key = `ratelimit:${apiName}`;
+        const current = this.redis.get(key) || { count: 0 };
+        return Math.max(0, this.maxRequests - current.count);
+    }
+}
+
+class APIManager {
+    constructor() {
+        this.redis = new FakeRedis('empire:');
+        this.rateLimiter = new RateLimiter(this.redis, 60, 60);
+
+        // API Configuration
+        this.apis = {
+            amazon: {
+                name: 'Amazon Associates',
+                key: localStorage.getItem('api_amazon_key') || '',
+                baseUrl: 'https://webservices.amazon.com/paapi5',
+                rateLimitPerMin: 10,
+                cacheTTL: 3600
+            },
+            hyperbrowser: {
+                name: 'Hyperbrowser',
+                key: localStorage.getItem('api_hyperbrowser_key') || 'hb_79a6e038d05a82e363d3cb247845',
+                baseUrl: 'https://api.hyperbrowser.ai/v1',
+                rateLimitPerMin: 100,
+                cacheTTL: 300
+            },
+            payhip: {
+                name: 'Payhip',
+                key: localStorage.getItem('api_payhip_key') || 'd2c6fb3308204f684fe11d46ca1fc19ad7160107',
+                baseUrl: 'https://payhip.com/api/v1',
+                rateLimitPerMin: 60,
+                cacheTTL: 1800
+            },
+            agentmail: {
+                name: 'AgentMail',
+                key: localStorage.getItem('api_agentmail_key') || 'am_us_63e7298d87a322575687fc2278793c36c54cac4d3',
+                baseUrl: 'https://api.agentmail.io/v1',
+                rateLimitPerMin: 100,
+                cacheTTL: 60
+            },
+            kie: {
+                name: 'KIE AI',
+                key: localStorage.getItem('api_kie_key') || '65057023cd65fa9224517e9f0bcee2d1',
+                baseUrl: 'https://api.kie.ai/v1',
+                rateLimitPerMin: 30,
+                cacheTTL: 600
+            },
+            openrouter: {
+                name: 'OpenRouter',
+                key: localStorage.getItem('api_openrouter_key') || '',
+                baseUrl: 'https://openrouter.ai/api/v1',
+                rateLimitPerMin: 200,
+                cacheTTL: 0
+            }
+        };
+
+        this.stats = {
+            totalRequests: 0,
+            cacheHits: 0,
+            cacheMisses: 0,
+            errors: 0,
+            apiCalls: {}
+        };
+
+        this.loadStats();
+    }
+
+    loadStats() {
+        const saved = this.redis.get('api_stats');
+        if (saved) {
+            this.stats = saved;
+        }
+    }
+
+    saveStats() {
+        this.redis.set('api_stats', this.stats, 86400);
+    }
+
+    async request(apiName, endpoint, options = {}) {
+        this.stats.totalRequests++;
+        this.stats.apiCalls[apiName] = (this.stats.apiCalls[apiName] || 0) + 1;
+
+        const api = this.apis[apiName];
+        if (!api) {
+            throw new Error(`Unknown API: ${apiName}`);
+        }
+
+        if (!api.key && apiName !== 'openrouter') {
+            addLog('warning', `${api.name} API key not configured`);
+            return { success: false, error: 'API key not configured', cached: false };
+        }
+
+        // Check cache first
+        const cacheKey = `cache:${apiName}:${endpoint}:${JSON.stringify(options.params || {})}`;
+        const useCache = options.cache !== false && api.cacheTTL > 0;
+
+        if (useCache) {
+            const cached = this.redis.get(cacheKey);
+            if (cached) {
+                this.stats.cacheHits++;
+                this.saveStats();
+                addLog('info', `Cache hit for ${api.name} ${endpoint}`);
+                return { ...cached, cached: true };
+            }
+        }
+
+        this.stats.cacheMisses++;
+
+        // Rate limiting
+        try {
+            await this.rateLimiter.checkLimit(apiName);
+        } catch (error) {
+            addLog('warning', error.message);
+            this.stats.errors++;
+            this.saveStats();
+            return { success: false, error: error.message, cached: false };
+        }
+
+        // Make request
+        const url = `${api.baseUrl}${endpoint}`;
+        const requestOptions = {
+            method: options.method || 'GET',
+            headers: {
+                'Authorization': `Bearer ${api.key}`,
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
+        };
+
+        if (options.body) {
+            requestOptions.body = JSON.stringify(options.body);
+        }
+
+        try {
+            addLog('info', `${api.name} ${options.method || 'GET'} ${endpoint}`);
+
+            // Simulate API call for demo (replace with real fetch in production)
+            const response = await this.mockAPIResponse(apiName, endpoint, options);
+
+            if (response.success && useCache) {
+                this.redis.set(cacheKey, response, api.cacheTTL);
+                addLog('success', `${api.name} response cached for ${api.cacheTTL}s`);
+            }
+
+            this.saveStats();
+            return { ...response, cached: false };
+
+        } catch (error) {
+            this.stats.errors++;
+            this.saveStats();
+            addLog('error', `${api.name} request failed: ${error.message}`);
+            return { success: false, error: error.message, cached: false };
+        }
+    }
+
+    async mockAPIResponse(apiName, endpoint, options) {
+        // Mock responses for demo - replace with real API calls
+        await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 300));
+
+        switch (apiName) {
+            case 'amazon':
+                return {
+                    success: true,
+                    data: {
+                        revenue: 0,
+                        clicks: 0,
+                        conversions: 0,
+                        products: []
+                    }
+                };
+
+            case 'hyperbrowser':
+                return {
+                    success: true,
+                    data: {
+                        jobId: 'hb_' + Math.random().toString(36).substr(2, 9),
+                        status: 'pending'
+                    }
+                };
+
+            case 'payhip':
+                return {
+                    success: true,
+                    data: {
+                        sales: 0,
+                        revenue: 0,
+                        products: []
+                    }
+                };
+
+            case 'agentmail':
+                return {
+                    success: true,
+                    data: {
+                        emails: [],
+                        sent: 0,
+                        pending: 0
+                    }
+                };
+
+            case 'kie':
+                return {
+                    success: true,
+                    data: {
+                        jobId: 'kie_' + Math.random().toString(36).substr(2, 9),
+                        status: 'processing'
+                    }
+                };
+
+            case 'openrouter':
+                return {
+                    success: true,
+                    data: {
+                        choices: [{
+                            message: {
+                                role: 'assistant',
+                                content: 'Mock response from AI model'
+                            }
+                        }],
+                        usage: {
+                            prompt_tokens: 10,
+                            completion_tokens: 20,
+                            total_tokens: 30
+                        }
+                    }
+                };
+
+            default:
+                return { success: false, error: 'Unknown API' };
+        }
+    }
+
+    getStats() {
+        return {
+            ...this.stats,
+            cacheHitRate: this.stats.totalRequests > 0 
+                ? ((this.stats.cacheHits / this.stats.totalRequests) * 100).toFixed(1) + '%'
+                : '0%'
+        };
+    }
+
+    clearCache() {
+        const cacheKeys = this.redis.keys('cache:*');
+        cacheKeys.forEach(key => this.redis.del(key));
+        addLog('success', `Cleared ${cacheKeys.length} cache entries`);
+    }
+
+    updateAPIKey(apiName, key) {
+        if (this.apis[apiName]) {
+            this.apis[apiName].key = key;
+            localStorage.setItem(`api_${apiName}_key`, key);
+            addLog('success', `${this.apis[apiName].name} API key updated`);
+        }
+    }
+
+    getAPIStatus() {
+        const status = {};
+        for (const [name, api] of Object.entries(this.apis)) {
+            status[name] = {
+                name: api.name,
+                configured: !!api.key,
+                remaining: this.rateLimiter.getRemainingRequests(name),
+                limit: api.rateLimitPerMin,
+                calls: this.stats.apiCalls[name] || 0
+            };
+        }
+        return status;
+    }
+}
+
+// Initialize global API manager
+const apiManager = new APIManager();
+
+    </script>
+
+    <!-- Nanobot Framework Module -->
+    <script>
+
+/**
+ * Nanobot Framework Integration
+ * Lightweight agent framework for task execution with OpenRouter LLM support
+ * Inspired by HKUDS/nanobot for simple and complex task orchestration
+ */
+
+class OpenRouterClient {
+    constructor(apiKey, defaultModel = 'anthropic/claude-3.5-sonnet') {
+        this.apiKey = apiKey || localStorage.getItem('api_openrouter_key') || '';
+        this.defaultModel = defaultModel;
+        this.baseUrl = 'https://openrouter.ai/api/v1';
+
+        // Model catalog with cost per 1M tokens (input/output)
+        this.models = {
+            // Primary model - Aurora Alpha (best quality/cost balance)
+            'amazon/nova-pro-v1': {
+                name: 'Amazon Nova Pro',
+                cost: { input: 0.8, output: 3.2 },
+                contextWindow: 300000,
+                capabilities: ['reasoning', 'analysis', 'coding', 'general'],
+                speed: 'fast'
+            },
+
+            // Fallback models by task type
+            'anthropic/claude-3.5-sonnet': {
+                name: 'Claude 3.5 Sonnet',
+                cost: { input: 3.0, output: 15.0 },
+                contextWindow: 200000,
+                capabilities: ['reasoning', 'analysis', 'coding', 'writing'],
+                speed: 'medium'
+            },
+            'google/gemini-2.0-flash-exp:free': {
+                name: 'Gemini 2.0 Flash (Free)',
+                cost: { input: 0, output: 0 },
+                contextWindow: 1000000,
+                capabilities: ['general', 'analysis', 'quick-tasks'],
+                speed: 'fast'
+            },
+            'deepseek/deepseek-chat': {
+                name: 'DeepSeek Chat',
+                cost: { input: 0.14, output: 0.28 },
+                contextWindow: 64000,
+                capabilities: ['coding', 'reasoning', 'analysis'],
+                speed: 'fast'
+            },
+            'mistralai/mistral-7b-instruct:free': {
+                name: 'Mistral 7B (Free)',
+                cost: { input: 0, output: 0 },
+                contextWindow: 32000,
+                capabilities: ['general', 'quick-tasks'],
+                speed: 'very-fast'
+            },
+            'openai/gpt-4o-mini': {
+                name: 'GPT-4o Mini',
+                cost: { input: 0.15, output: 0.6 },
+                contextWindow: 128000,
+                capabilities: ['general', 'analysis', 'coding'],
+                speed: 'fast'
+            }
+        };
+
+        this.stats = {
+            totalCalls: 0,
+            totalCost: 0,
+            modelUsage: {},
+            errors: 0
+        };
+
+        this.loadStats();
+    }
+
+    loadStats() {
+        const saved = localStorage.getItem('openrouter_stats');
+        if (saved) {
+            this.stats = JSON.parse(saved);
+        }
+    }
+
+    saveStats() {
+        localStorage.setItem('openrouter_stats', JSON.stringify(this.stats));
+    }
+
+    selectModel(taskType, contextLength = 0, maxCost = null) {
+        // Default to Aurora Alpha (Amazon Nova Pro)
+        let selectedModel = 'amazon/nova-pro-v1';
+
+        // Check if default model can handle the task
+        const defaultModelInfo = this.models[selectedModel];
+
+        // If context too large or task requires specific capability, find alternative
+        if (contextLength > defaultModelInfo.contextWindow || maxCost !== null) {
+            const candidates = Object.entries(this.models)
+                .filter(([id, info]) => {
+                    const hasCapability = !taskType || info.capabilities.includes(taskType);
+                    const fitsContext = contextLength <= info.contextWindow;
+                    const withinBudget = maxCost === null || info.cost.input <= maxCost;
+                    return hasCapability && fitsContext && withinBudget;
+                })
+                .sort((a, b) => {
+                    // Sort by cost (lower is better)
+                    const costA = a[1].cost.input + a[1].cost.output;
+                    const costB = b[1].cost.input + b[1].cost.output;
+                    return costA - costB;
+                });
+
+            if (candidates.length > 0) {
+                selectedModel = candidates[0][0];
+            }
+        }
+
+        addLog('info', `Selected model: ${this.models[selectedModel].name} for task: ${taskType || 'general'}`);
+        return selectedModel;
+    }
+
+    async chat(messages, options = {}) {
+        if (!this.apiKey) {
+            addLog('error', 'OpenRouter API key not configured');
+            return { success: false, error: 'API key required' };
+        }
+
+        const taskType = options.taskType || 'general';
+        const contextLength = JSON.stringify(messages).length;
+        const model = options.model || this.selectModel(taskType, contextLength, options.maxCost);
+
+        const payload = {
+            model: model,
+            messages: messages,
+            temperature: options.temperature || 0.7,
+            max_tokens: options.maxTokens || 4000,
+            ...options.params
+        };
+
+        try {
+            this.stats.totalCalls++;
+            this.stats.modelUsage[model] = (this.stats.modelUsage[model] || 0) + 1;
+
+            addLog('info', `OpenRouter chat: ${model}`);
+
+            // Mock response for demo
+            const response = await this.mockChatResponse(model, messages);
+
+            // Calculate cost
+            const modelInfo = this.models[model];
+            const estimatedTokens = contextLength / 4 + 500; // rough estimate
+            const cost = (modelInfo.cost.input * estimatedTokens / 1000000) + 
+                        (modelInfo.cost.output * 500 / 1000000);
+
+            this.stats.totalCost += cost;
+            this.saveStats();
+
+            addLog('success', `Response received. Cost: $${cost.toFixed(6)}`);
+
+            return {
+                success: true,
+                data: response,
+                model: model,
+                cost: cost
+            };
+
+        } catch (error) {
+            this.stats.errors++;
+            this.saveStats();
+            addLog('error', `OpenRouter error: ${error.message}`);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async mockChatResponse(model, messages) {
+        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+
+        const lastMessage = messages[messages.length - 1];
+        const content = lastMessage.content || '';
+
+        return {
+            id: 'chatcmpl_' + Math.random().toString(36).substr(2, 9),
+            model: model,
+            choices: [{
+                message: {
+                    role: 'assistant',
+                    content: `Mock response to: "${content.substring(0, 50)}..." (Model: ${this.models[model].name})`
+                },
+                finish_reason: 'stop'
+            }],
+            usage: {
+                prompt_tokens: Math.floor(content.length / 4),
+                completion_tokens: 100,
+                total_tokens: Math.floor(content.length / 4) + 100
+            }
+        };
+    }
+
+    getStats() {
+        return {
+            ...this.stats,
+            avgCostPerCall: this.stats.totalCalls > 0 
+                ? (this.stats.totalCost / this.stats.totalCalls).toFixed(6)
+                : 0
+        };
+    }
+
+    updateAPIKey(key) {
+        this.apiKey = key;
+        localStorage.setItem('api_openrouter_key', key);
+        addLog('success', 'OpenRouter API key updated');
+    }
+}
+
+class NanobotAgent {
+    constructor(name, role, llmClient) {
+        this.name = name;
+        this.role = role;
+        this.llm = llmClient;
+        this.memory = [];
+        this.tools = [];
+        this.taskHistory = [];
+    }
+
+    registerTool(name, description, handler) {
+        this.tools.push({ name, description, handler });
+        addLog('info', `Agent ${this.name}: registered tool "${name}"`);
+    }
+
+    async think(input, context = {}) {
+        const systemPrompt = {
+            role: 'system',
+            content: `You are ${this.name}, a ${this.role}. ${context.instructions || ''}`
+        };
+
+        const messages = [
+            systemPrompt,
+            ...this.memory.slice(-5), // Keep last 5 exchanges
+            { role: 'user', content: input }
+        ];
+
+        const response = await this.llm.chat(messages, {
+            taskType: context.taskType || 'general',
+            temperature: context.temperature || 0.7,
+            maxTokens: context.maxTokens || 2000
+        });
+
+        if (response.success) {
+            const reply = response.data.choices[0].message.content;
+            this.memory.push({ role: 'user', content: input });
+            this.memory.push({ role: 'assistant', content: reply });
+
+            this.taskHistory.push({
+                input: input,
+                output: reply,
+                model: response.model,
+                cost: response.cost,
+                timestamp: Date.now()
+            });
+
+            return { success: true, response: reply, model: response.model };
+        }
+
+        return { success: false, error: response.error };
+    }
+
+    async execute(taskName, parameters = {}) {
+        const tool = this.tools.find(t => t.name === taskName);
+
+        if (!tool) {
+            addLog('warning', `Agent ${this.name}: Unknown task "${taskName}"`);
+            return { success: false, error: `Unknown task: ${taskName}` };
+        }
+
+        addLog('info', `Agent ${this.name}: Executing "${taskName}"`);
+
+        try {
+            const result = await tool.handler(parameters);
+            return { success: true, result: result };
+        } catch (error) {
+            addLog('error', `Agent ${this.name}: Task failed - ${error.message}`);
+            return { success: false, error: error.message };
+        }
+    }
+
+    clearMemory() {
+        this.memory = [];
+        addLog('info', `Agent ${this.name}: Memory cleared`);
+    }
+
+    getStats() {
+        const totalCost = this.taskHistory.reduce((sum, t) => sum + (t.cost || 0), 0);
+        return {
+            name: this.name,
+            role: this.role,
+            tasksCompleted: this.taskHistory.length,
+            totalCost: totalCost.toFixed(6),
+            memorySize: this.memory.length,
+            tools: this.tools.length
+        };
+    }
+}
+
+class NanobotFramework {
+    constructor(openRouterKey) {
+        this.llm = new OpenRouterClient(openRouterKey, 'amazon/nova-pro-v1');
+        this.agents = new Map();
+        this.workflows = new Map();
+    }
+
+    createAgent(name, role) {
+        const agent = new NanobotAgent(name, role, this.llm);
+        this.agents.set(name, agent);
+        addLog('success', `Created agent: ${name} (${role})`);
+        return agent;
+    }
+
+    getAgent(name) {
+        return this.agents.get(name);
+    }
+
+    registerWorkflow(name, steps) {
+        this.workflows.set(name, steps);
+        addLog('success', `Registered workflow: ${name} (${steps.length} steps)`);
+    }
+
+    async executeWorkflow(workflowName, input) {
+        const workflow = this.workflows.get(workflowName);
+        if (!workflow) {
+            return { success: false, error: `Unknown workflow: ${workflowName}` };
+        }
+
+        addLog('info', `Executing workflow: ${workflowName}`);
+        const results = [];
+        let currentInput = input;
+
+        for (const step of workflow) {
+            const agent = this.agents.get(step.agent);
+            if (!agent) {
+                addLog('error', `Workflow failed: Agent "${step.agent}" not found`);
+                return { success: false, error: `Agent not found: ${step.agent}` };
+            }
+
+            const result = step.type === 'think' 
+                ? await agent.think(currentInput, step.context || {})
+                : await agent.execute(step.task, step.parameters || {});
+
+            results.push({ step: step.name, result: result });
+
+            if (!result.success) {
+                addLog('error', `Workflow step failed: ${step.name}`);
+                return { success: false, error: result.error, results: results };
+            }
+
+            currentInput = result.response || result.result;
+        }
+
+        addLog('success', `Workflow "${workflowName}" completed successfully`);
+        return { success: true, results: results };
+    }
+
+    getSystemStats() {
+        const llmStats = this.llm.getStats();
+        const agentStats = Array.from(this.agents.values()).map(a => a.getStats());
+
+        return {
+            llm: llmStats,
+            agents: agentStats,
+            workflows: this.workflows.size,
+            totalAgents: this.agents.size
+        };
+    }
+}
+
+// Initialize global Nanobot framework
+let nanobotFramework = null;
+
+function initNanobot() {
+    const openRouterKey = localStorage.getItem('api_openrouter_key');
+    nanobotFramework = new NanobotFramework(openRouterKey);
+
+    // Create default agents
+    const contentAgent = nanobotFramework.createAgent('ContentWriter', 'Content creation specialist');
+    contentAgent.registerTool('generatePost', 'Generate social media post', async (params) => {
+        return await contentAgent.think(`Create a ${params.platform} post about: ${params.topic}`, {
+            taskType: 'writing',
+            temperature: 0.8
+        });
+    });
+
+    const researchAgent = nanobotFramework.createAgent('Researcher', 'Market research analyst');
+    researchAgent.registerTool('analyzeCompetitors', 'Analyze competitor data', async (params) => {
+        return await researchAgent.think(`Analyze competitors in: ${params.niche}`, {
+            taskType: 'analysis'
+        });
+    });
+
+    const strategyAgent = nanobotFramework.createAgent('Strategist', 'Marketing strategy expert');
+    strategyAgent.registerTool('planCampaign', 'Plan marketing campaign', async (params) => {
+        return await strategyAgent.think(`Plan a campaign for: ${params.goal}`, {
+            taskType: 'reasoning'
+        });
+    });
+
+    // Register default workflow
+    nanobotFramework.registerWorkflow('contentPipeline', [
+        { name: 'Research', agent: 'Researcher', type: 'think', context: { taskType: 'analysis' } },
+        { name: 'Strategy', agent: 'Strategist', type: 'think', context: { taskType: 'reasoning' } },
+        { name: 'Create', agent: 'ContentWriter', type: 'think', context: { taskType: 'writing', temperature: 0.9 } }
+    ]);
+
+    addLog('success', 'Nanobot framework initialized with 3 agents');
+    return nanobotFramework;
+}
+
+    </script>
+
+    <!-- Settings Integration -->
+    <script>
+        // Settings tab switching
+        function switchSettingsTab(tab) {
+            // Hide all panels
+            document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected panel
+            document.getElementById(tab + 'Settings').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Save API Keys
+        function saveAPIKeys(event) {
+            event.preventDefault();
+
+            const apis = ['amazon', 'hyperbrowser', 'payhip', 'agentmail', 'kie'];
+            apis.forEach(api => {
+                const key = document.getElementById('api_' + api + '_key').value;
+                if (key) {
+                    apiManager.updateAPIKey(api, key);
+                }
+            });
+
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+
+            updateAPIStatusDashboard();
+        }
+
+        // Save OpenRouter settings
+        function saveOpenRouter(event) {
+            event.preventDefault();
+
+            const key = document.getElementById('api_openrouter_key').value;
+            const defaultModel = document.getElementById('openrouter_default_model').value;
+            const autoSelect = document.getElementById('openrouter_auto_select').checked;
+            const maxCost = document.getElementById('openrouter_max_cost').value;
+
+            if (key) {
+                if (nanobotFramework) {
+                    nanobotFramework.llm.updateAPIKey(key);
+                    nanobotFramework.llm.defaultModel = defaultModel;
+                } else {
+                    localStorage.setItem('api_openrouter_key', key);
+                }
+
+                localStorage.setItem('openrouter_default_model', defaultModel);
+                localStorage.setItem('openrouter_auto_select', autoSelect);
+                localStorage.setItem('openrouter_max_cost', maxCost);
+
+                addLog('success', 'OpenRouter settings saved');
+            }
+
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+                updateOpenRouterStats();
+            }, 2000);
+        }
+
+        // Update API status dashboard
+        function updateAPIStatusDashboard() {
+            const status = apiManager.getAPIStatus();
+            const stats = apiManager.getStats();
+
+            const html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    ${Object.entries(status).map(([name, info]) => `
+                        <div style="padding: 10px; background: white; border-radius: 6px; border-left: 3px solid ${info.configured ? '#48bb78' : '#f56565'}">
+                            <div style="font-weight: 600; margin-bottom: 5px;">${info.name}</div>
+                            <div style="font-size: 12px; color: #718096;">
+                                Status: ${info.configured ? '🟢 Ready' : '⚫ Not configured'}<br>
+                                Calls: ${info.calls}<br>
+                                Rate limit: ${info.remaining}/${info.limit} req/min
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 6px;">
+                    <strong>System Stats:</strong><br>
+                    Total requests: ${stats.totalRequests} | 
+                    Cache hits: ${stats.cacheHits} (${stats.cacheHitRate}) | 
+                    Errors: ${stats.errors}
+                </div>
+            `;
+
+            document.getElementById('apiStatusDashboard').innerHTML = html;
+        }
+
+        // Update OpenRouter stats
+        function updateOpenRouterStats() {
+            if (!nanobotFramework) return;
+
+            const stats = nanobotFramework.llm.getStats();
+
+            const html = `
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div style="padding: 10px; background: white; border-radius: 6px;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">Total Calls</div>
+                        <div style="font-size: 24px; color: #667eea;">${stats.totalCalls}</div>
+                    </div>
+                    <div style="padding: 10px; background: white; border-radius: 6px;">
+                        <div style="font-weight: 600; margin-bottom: 5px;">Total Cost</div>
+                        <div style="font-size: 24px; color: #667eea;">${stats.totalCost.toFixed(4)}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 6px;">
+                    <strong>Model Usage:</strong><br>
+                    ${Object.entries(stats.modelUsage).map(([model, count]) => 
+                        `${model}: ${count} calls`
+                    ).join('<br>')}
+                </div>
+                <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 6px;">
+                    Avg cost per call: <strong>$$${stats.avgCostPerCall}</strong>
+                </div>
+            `;
+
+            document.getElementById('openrouterStats').innerHTML = html;
+        }
+
+        // Update agents list
+        function updateAgentsList() {
+            if (!nanobotFramework) return;
+
+            const stats = nanobotFramework.getSystemStats();
+
+            const html = `
+                ${stats.agents.map(agent => `
+                    <div style="padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #667eea;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div style="font-weight: 600; font-size: 16px;">${agent.name}</div>
+                            <div style="font-size: 12px; color: #718096;">${agent.role}</div>
+                        </div>
+                        <div style="font-size: 13px; color: #718096;">
+                            Tasks completed: ${agent.tasksCompleted} | 
+                            Total cost: $$${agent.totalCost} | 
+                            Tools: ${agent.tools} | 
+                            Memory: ${agent.memorySize} items
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            document.getElementById('agentsList').innerHTML = html || '<p style="color: #718096;">No agents initialized yet.</p>';
+        }
+
+        // Test agent workflow
+        async function testAgentWorkflow() {
+            if (!nanobotFramework) {
+                nanobotFramework = initNanobot();
+            }
+
+            addLog('info', 'Testing agent workflow...');
+            document.getElementById('workflowResults').style.display = 'block';
+            document.getElementById('workflowOutput').textContent = 'Executing workflow...';
+
+            const result = await nanobotFramework.executeWorkflow('contentPipeline', 
+                'Create a Reddit post about luxury skincare dupes for anti-aging'
+            );
+
+            document.getElementById('workflowOutput').textContent = JSON.stringify(result, null, 2);
+            updateAgentsList();
+            updateOpenRouterStats();
+        }
+
+        // Initialize on settings open
+        const originalOpenSettings = openSettings;
+        openSettings = function() {
+            originalOpenSettings();
+
+            // Load saved values
+            const openRouterKey = localStorage.getItem('api_openrouter_key');
+            if (openRouterKey) {
+                document.getElementById('api_openrouter_key').value = openRouterKey;
+            }
+
+            const defaultModel = localStorage.getItem('openrouter_default_model');
+            if (defaultModel) {
+                document.getElementById('openrouter_default_model').value = defaultModel;
+            }
+
+            const autoSelect = localStorage.getItem('openrouter_auto_select');
+            if (autoSelect !== null) {
+                document.getElementById('openrouter_auto_select').checked = autoSelect === 'true';
+            }
+
+            const maxCost = localStorage.getItem('openrouter_max_cost');
+            if (maxCost) {
+                document.getElementById('openrouter_max_cost').value = maxCost;
+            }
+
+            // Update dashboards
+            updateAPIStatusDashboard();
+            updateOpenRouterStats();
+            updateAgentsList();
+        };
+
+        // Initialize Nanobot on dashboard load
+        setTimeout(() => {
+            if (localStorage.getItem('api_openrouter_key')) {
+                initNanobot();
+                addLog('success', 'Nanobot framework ready');
+            }
+        }, 2000);
+    </script>
+
 </body>
 </html>
