@@ -58,13 +58,8 @@
     </style>
 </head>
 <body>
-    <script>
-        if (!localStorage.getItem('user')) {
-            window.location.href = 'login.html';
-        }
-    </script>
     <div class="header">
-        <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
+        <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
         <h1>🤖 AI Agent Team</h1>
         <div style="width:100px;"></div>
     </div>
@@ -103,5 +98,16 @@
             <div class="task"><span class="status pending">PENDING</span>Create promotional calendar</div>
         </div>
     </div>
+    <script>
+        // Check authentication - use same key as dashboard
+        const isAuth = localStorage.getItem('isAuthenticated');
+        if (!isAuth || isAuth !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
 </body>
 </html>
