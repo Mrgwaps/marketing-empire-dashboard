@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Empire Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header-left h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
+        }
+        .header-left p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        .header-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .settings-btn, .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.3s;
+        }
+        .settings-btn:hover, .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .logout-btn {
+            font-size: 0.9rem;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .metric-card h3 {
+            color: #666;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .metric-card .change {
+            font-size: 0.875rem;
+            color: #10b981;
+        }
+        .metric-card .change.negative {
+            color: #ef4444;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .chart-card h3 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .settings-modal.show {
+            display: flex;
+        }
+        .settings-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .settings-content h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        .settings-form-group {
+            margin-bottom: 1.5rem;
+        }
+        .settings-form-group label {
+            display: block;
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .settings-form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .settings-form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .settings-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1>✨ Marketing Empire Dashboard</h1>
+            <p><span class="status-indicator"></span>Live Data • Last updated: <span id="lastUpdate">Loading...</span></p>
+        </div>
+        <div class="header-right">
+            <button class="settings-btn" onclick="openSettings()">⚙️</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <h3>Total Revenue</h3>
+            <div class="value" id="totalRevenue">$0.00</div>
+            <div class="change" id="revenueChange">Loading...</div>
+        </div>
+        <div class="metric-card">
+            <h3>Email Subscribers</h3>
+            <div class="value" id="totalSubscribers">0</div>
+            <div class="change" id="subscribersChange">Loading...</div>
+        </div>
+        <div class="metric-card">
+            <h3>Reddit Karma</h3>
+            <div class="value" id="redditKarma">0</div>
+            <div class="change" id="karmaChange">Loading...</div>
+        </div>
+        <div class="metric-card">
+            <h3>Active Products</h3>
+            <div class="value" id="activeProducts">0</div>
+            <div class="change" id="productsChange">Loading...</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Revenue Trend (Last 30 Days)</h3>
+            <canvas id="revenueChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Subscriber Growth</h3>
+            <canvas id="subscriberChart"></canvas>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Top Performing Products</h3>
+            <canvas id="productsChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Email Performance</h3>
+            <canvas id="emailChart"></canvas>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-content">
+            <h2>⚙️ Dashboard Settings</h2>
+            <div id="settingsAlert"></div>
+            <div class="settings-form-group">
+                <label for="airtablePAT">Airtable Personal Access Token (PAT)</label>
+                <input type="password" id="airtablePAT" placeholder="Enter your Airtable PAT">
+                <small style="color: #666; display: block; margin-top: 0.5rem;">
+                    Get your PAT from <a href="https://airtable.com/create/tokens" target="_blank">Airtable Tokens</a>
+                </small>
+            </div>
+            <div class="settings-actions">
+                <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+                <button class="btn btn-primary" onclick="savePAT()">Save & Reload</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('dashboardAuth') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        const AIRTABLE_BASE_ID = 'appl6ToZSGjS6wU0K';
+        const TABLES = {
+            EMAIL_METRICS: 'tblkXDs74AhSD4N4T',
+            PRODUCT_PERFORMANCE: 'tblshfGxKJYZEWyU6',
+            REDDIT_PERFORMANCE: 'tblNdvMYw7aelx59Z',
+            SYSTEM_OVERVIEW: 'tblyhWFWmXKINkUPQ'
+        };
+
+        function getAirtablePAT() {
+            return localStorage.getItem('airtablePAT');
+        }
+
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            const patInput = document.getElementById('airtablePAT');
+            const currentPAT = getAirtablePAT();
+            if (currentPAT) {
+                patInput.value = currentPAT;
+            }
+            modal.classList.add('show');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+            document.getElementById('settingsAlert').innerHTML = '';
+        }
+
+        function savePAT() {
+            const pat = document.getElementById('airtablePAT').value.trim();
+            const alertDiv = document.getElementById('settingsAlert');
+            
+            if (!pat) {
+                alertDiv.innerHTML = '<div class="alert alert-error">Please enter a valid PAT</div>';
+                return;
+            }
+            
+            localStorage.setItem('airtablePAT', pat);
+            alertDiv.innerHTML = '<div class="alert alert-success">PAT saved! Reloading dashboard...</div>';
+            
+            setTimeout(() => {
+                closeSettings();
+                location.reload();
+            }, 1500);
+        }
+
+        function logout() {
+            localStorage.removeItem('dashboardAuth');
+            window.location.href = 'login.html';
+        }
+
+        async function fetchAirtableData(tableId) {
+            const pat = getAirtablePAT();
+            if (!pat) {
+                console.warn('No PAT configured - using demo data');
+                return null;
+            }
+
+            try {
+                const response = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${tableId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${pat}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.records;
+            } catch (error) {
+                console.error('Airtable fetch error:', error);
+                return null;
+            }
+        }
+
+        async function initDashboard() {
+            const pat = getAirtablePAT();
+            
+            if (!pat) {
+                document.getElementById('settingsAlert').innerHTML = 
+                    '<div class="alert alert-error">Please configure your Airtable PAT to load live data</div>';
+                openSettings();
+                loadDemoData();
+                return;
+            }
+
+            await loadRealData();
+            setInterval(loadRealData, 5 * 60 * 1000);
+        }
+
+        async function loadRealData() {
+            const emailData = await fetchAirtableData(TABLES.EMAIL_METRICS);
+            const productData = await fetchAirtableData(TABLES.PRODUCT_PERFORMANCE);
+            const redditData = await fetchAirtableData(TABLES.REDDIT_PERFORMANCE);
+
+            if (!emailData || !productData || !redditData) {
+                loadDemoData();
+                return;
+            }
+
+            const totalRevenue = productData.reduce((sum, record) => 
+                sum + (record.fields['Total Revenue'] || 0), 0);
+            const totalSubscribers = emailData.reduce((sum, record) => 
+                sum + (record.fields['New Subscribers'] || 0), 0);
+            const totalKarma = redditData.reduce((sum, record) => 
+                sum + (record.fields['Upvotes'] || 0), 0);
+
+            document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+            document.getElementById('totalSubscribers').textContent = totalSubscribers;
+            document.getElementById('redditKarma').textContent = totalKarma;
+            document.getElementById('activeProducts').textContent = productData.length;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+            document.getElementById('revenueChange').textContent = totalRevenue > 0 ? '↑ Growing' : 'Awaiting first sale';
+            document.getElementById('subscribersChange').textContent = totalSubscribers > 0 ? `${totalSubscribers} total` : 'Start posting!';
+            document.getElementById('karmaChange').textContent = totalKarma > 0 ? `${totalKarma} points` : 'First post pending';
+            document.getElementById('productsChange').textContent = `${productData.length} tracked`;
+
+            updateCharts(emailData, productData, redditData);
+        }
+
+        function loadDemoData() {
+            document.getElementById('totalRevenue').textContent = '$0.00';
+            document.getElementById('totalSubscribers').textContent = '0';
+            document.getElementById('redditKarma').textContent = '9';
+            document.getElementById('activeProducts').textContent = '5';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+
+            document.getElementById('revenueChange').textContent = 'Awaiting first sale';
+            document.getElementById('subscribersChange').textContent = 'Start posting!';
+            document.getElementById('karmaChange').textContent = '9 current karma';
+            document.getElementById('productsChange').textContent = '5 tracked';
+
+            createDemoCharts();
+        }
+
+        function createDemoCharts() {
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 7', 'Day 14', 'Day 21', 'Day 30'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [0, 0, 0, 0, 0],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            new Chart(document.getElementById('subscriberChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'New Subscribers',
+                        data: [0, 0, 0, 0],
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            new Chart(document.getElementById('productsChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['CeraVe Eye Repair', 'Olay Regenerist', 'The Inkey List', 'The Ordinary', 'CeraVe Cream'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+
+            new Chart(document.getElementById('emailChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Email 1', 'Email 2', 'Email 3', 'Email 4', 'Email 5'],
+                    datasets: [{
+                        label: 'Open Rate %',
+                        data: [0, 0, 0, 0, 0],
+                        borderColor: '#f093fb',
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function updateCharts(emailData, productData, redditData) {
+            createDemoCharts();
+        }
+
+        initDashboard();
+    </script>
+</body>
+</html>

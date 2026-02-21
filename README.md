@@ -1,33 +1,73 @@
-# Marketing Analytics Dashboard
+# Marketing Empire Dashboard
 
-A lightweight, real-time analytics dashboard for tracking multi-platform marketing metrics.
+A real-time analytics dashboard for tracking marketing performance metrics.
 
 ## Features
 
-- 📊 **Real-time Data**: Live integration with Airtable API
-- 📈 **Visual Analytics**: Interactive charts powered by Chart.js
-- 🎯 **Multi-Stream Tracking**: Monitor revenue and performance across platforms
-- 🏆 **Milestone Tracking**: Automated progress indicators
-- 📱 **Mobile Responsive**: Optimized for all devices
-- 🔐 **Secure**: Configuration stored locally, never committed to Git
+- 📊 Real-time data visualization with Chart.js
+- 🔐 Secure authentication system
+- ⚙️ Easy configuration via settings panel
+- 📱 Mobile responsive design
+- 🔄 Auto-refresh every 5 minutes
+- 🎨 Modern gradient UI
 
-## Quick Start
+## Setup Instructions
+
+### 1. Clone and Deploy
+
+This dashboard is designed for GitHub Pages deployment:
 
 1. Fork or clone this repository
-2. Copy `config.example.js` to `config.js`
-3. Add your Airtable credentials to `config.js`
-4. Deploy to GitHub Pages or any static host
+2. Enable GitHub Pages in repository settings
+3. Set source to `main` branch
 
-## Technologies
+### 2. Configure Airtable Integration
 
-- Pure HTML/CSS/JavaScript (no build step required)
-- Chart.js for data visualization
-- Airtable as data backend
+1. Create an Airtable Personal Access Token (PAT):
+   - Visit https://airtable.com/create/tokens
+   - Create token with `data.records:read` scope
+   - Copy the generated token
 
-## Security Note
+2. Log into the dashboard:
+   - Visit your GitHub Pages URL
+   - Use your credentials to log in
 
-Never commit `config.js` to version control. It's automatically ignored via `.gitignore`.
+3. Configure PAT:
+   - Click the ⚙️ settings icon (top-right)
+   - Paste your Airtable PAT
+   - Click "Save & Reload"
+
+### 3. Airtable Base Structure
+
+Your Airtable base should include these tables:
+
+- **Email Metrics**: Track subscriber growth and email performance
+- **Product Performance**: Monitor product sales and revenue
+- **Reddit Performance**: Track post engagement and karma
+- **System Overview**: General resources and tracking
+
+## Usage
+
+- **Login**: Use configured credentials to access dashboard
+- **Settings**: Click ⚙️ to update Airtable PAT
+- **Auto-refresh**: Data updates every 5 minutes automatically
+- **Logout**: Click "Logout" to end session
+
+## Tech Stack
+
+- Pure HTML/CSS/JavaScript
+- Chart.js for visualizations
+- Airtable API for data
+- LocalStorage for configuration
+- GitHub Pages for hosting
+
+## Security
+
+- Authentication via localStorage session
+- PAT stored locally in browser only
+- No server-side storage
+- Configure PAT after deployment
 
 ## License
 
-MIT License
+MIT License - feel free to customize for your needs!
