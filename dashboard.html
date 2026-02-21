@@ -673,6 +673,237 @@
                 gap: 15px;
             }
         }
+    
+        /* Agent Management Styles */
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .agent-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .agent-card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .agent-avatar {
+            font-size: 48px;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7fafc;
+            border-radius: 12px;
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .agent-role {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .agent-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+
+        .agent-status.idle {
+            background: #cbd5e0;
+        }
+
+        .agent-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .agent-stat {
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .agent-stat-label {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .agent-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .agent-profile-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .agent-profile-section:last-child {
+            border-bottom: none;
+        }
+
+        .agent-profile-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .agent-capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .capability-tag {
+            padding: 6px 12px;
+            background: #edf2f7;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .skill-item {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .skill-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 15px;
+        }
+
+        .skill-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .skill-meta {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary-action {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .agent-memory-item {
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .agent-memory-role {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .agent-memory-content {
+            font-size: 13px;
+            color: #2d3748;
+        }
+
+        .agent-task-item {
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .agent-task-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .agent-task-time {
+            font-size: 11px;
+            color: #a0aec0;
+        }
+
     </style>
 </head>
 <body>
@@ -925,6 +1156,81 @@
                     </div>
                 </div>
             </div>
+
+            
+
+            <!-- Agent Management Section -->
+            <div class="section-header">
+                <h2 class="section-title">🤖 Agent Management</h2>
+                <button class="btn" onclick="refreshAgents()" style="background: #667eea; color: white;">Refresh</button>
+            </div>
+
+            <div class="agent-grid" id="agentGrid">
+                <!-- Agent cards will be populated here -->
+            </div>
+
+            <!-- Agent Profile Modal -->
+            <div id="agentProfileModal" class="modal">
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="agentProfileTitle">Agent Profile</h2>
+                        <button class="modal-close" onclick="closeAgentProfile()">×</button>
+                    </div>
+
+                    <div id="agentProfileContent">
+                        <!-- Content populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Brain Modal -->
+            <div id="agentBrainModal" class="modal">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">🧠 Agent Brain</h2>
+                        <button class="modal-close" onclick="closeAgentBrain()">×</button>
+                    </div>
+
+                    <div id="agentBrainContent">
+                        <!-- Brain content populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG Upload Modal -->
+            <div id="ragUploadModal" class="modal">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">📚 Upload Knowledge</h2>
+                        <button class="modal-close" onclick="closeRAGUpload()">×</button>
+                    </div>
+
+                    <div style="padding: 20px;">
+                        <p style="margin-bottom: 20px; color: #718096;">
+                            Upload documents to teach this agent new skills. Supported formats: PDF, TXT, MD, DOCX, Video files.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">Select File</label>
+                            <input type="file" id="ragFileInput" class="form-input" 
+                                   accept=".pdf,.txt,.md,.docx,.mp4,.mov"
+                                   onchange="handleRAGUpload(event)">
+                            <div class="form-help">
+                                Max file size: 10MB<br>
+                                The agent will learn from this content and add it as a skill.
+                            </div>
+                        </div>
+
+                        <div id="uploadProgress" style="display: none; margin-top: 20px;">
+                            <div style="background: #e2e8f0; height: 20px; border-radius: 10px; overflow: hidden;">
+                                <div id="uploadProgressBar" style="background: #667eea; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <p id="uploadStatus" style="margin-top: 10px; color: #718096; text-align: center;">Processing...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- AgentMail Interface -->
             <div class="section-header">
