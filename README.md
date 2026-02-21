@@ -1,121 +1,123 @@
-# Marketing Empire Dashboard 🚀
+# 🚀 Marketing Empire Dashboard
 
-**Live Dashboard:** https://mrgwaps.github.io/marketing-empire-dashboard/
+**Live Analytics & Revenue Tracking** for Multi-Platform Affiliate Marketing
 
-Real-time tracking of your affiliate marketing empire across 5+ income streams.
+## 🌐 Live Dashboard
+👉 **[View Live Dashboard](https://mrgwaps.github.io/marketing-empire-dashboard/)**
 
-## Features
+## 📊 Features
 
-### 📊 Real-Time Metrics
+### Real-Time Metrics
 - **Total Revenue** across all income streams
 - **Email Subscribers** with milestone tracking
-- **Content Published** (Reddit posts, YouTube videos)
+- **Reddit Posts** performance
+- **Conversion Rates** and growth trends
 
-### 💰 Income Streams
-1. **Amazon Associates** - Luxury beauty product commissions
+### 5+ Income Streams Tracked
+1. **Amazon Associates** (ID: megonlpro-20) - Luxury skincare affiliate
 2. **Payhip Digital Products** - Guides, templates, cheat sheets
-3. **Lead Generation** - AgentMail services
-4. **YouTube** - KIE AI automated video content
-5. **AgentMail Services** - Autonomous email automation
+3. **AgentMail Lead Generation** - Automated lead gen
+4. **KIE AI Video Content** - YouTube monetization
+5. **Reddit Affiliate** - Direct traffic conversion
 
-### 📈 Visualizations
-- Revenue trend chart (30-day view)
-- Traffic & engagement breakdown
-- Milestone progress bars
-- System status indicators
+### Live Charts
+- 📈 **Revenue Trend** (30-day historical)
+- 👥 **Subscriber Growth** (weekly breakdown)
+- 🎯 **Milestone Progress** (visual tracking)
 
-### 🔄 Automation
-- Auto-refreshes every 5 minutes
-- Pulls live data from Airtable
-- Mobile-responsive design
-- Animated charts and metrics
+### Auto-Refresh
+- Updates every **5 minutes**
+- Pulls live data from **Airtable API**
+- Mobile-optimized responsive design
 
-## Setup Instructions
+## ⚙️ Setup
 
 ### 1. Get Your Airtable Personal Access Token (PAT)
 
 1. Go to https://airtable.com/create/tokens
-2. Click "Create new token"
-3. Name it: "Marketing Dashboard"
+2. Click **"Create new token"**
+3. Name it: `Marketing Dashboard Access`
 4. Add these scopes:
    - `data.records:read`
    - `schema.bases:read`
 5. Add access to base: `Project 10X` (appl6ToZSGjS6wU0K)
-6. Click "Create token"
+6. Click **"Create token"**
 7. Copy the token (starts with `pat...`)
 
-### 2. Configure the Dashboard
+### 2. Update Dashboard with Your PAT
 
-1. Open `index.html` in a text editor
-2. Find line 390: `const AIRTABLE_PAT = 'YOUR_AIRTABLE_PAT_HERE';`
-3. Replace `YOUR_AIRTABLE_PAT_HERE` with your actual token
-4. Save the file
-5. Commit and push to GitHub
+Edit `index.html` line 329:
+```javascript
+const AIRTABLE_PAT = "YOUR_AIRTABLE_PAT_HERE";
+```
+Replace with your actual PAT:
+```javascript
+const AIRTABLE_PAT = "patXXXXXXXXXXXXXX.XXXXXXXXXXXXXXX";
+```
 
-### 3. Enable GitHub Pages (Already Done!)
+### 3. Commit & Push
 
-GitHub Pages is already configured and live at:
-**https://mrgwaps.github.io/marketing-empire-dashboard/**
+```bash
+git add index.html
+git commit -m "Add Airtable PAT"
+git push
+```
 
-## Airtable Integration
+Dashboard will update automatically on GitHub Pages!
 
-The dashboard pulls data from these tables in your `Project 10X` base:
+## 📊 Airtable Tables
 
-- **System Overview** - Resources and tools tracking
-- **Product Performance** - Revenue by product and income stream
-- **Reddit Performance** - Post engagement metrics
-- **Email Metrics** - Subscriber counts and growth
-- **Weekly Research** - Competitive intelligence
+The dashboard pulls from these tables:
+- **Product Performance** - Revenue by source
+- **Email Metrics** - Subscriber counts
+- **Reddit Performance** - Post analytics
+- **System Overview** - Resources & links
+- **Weekly Research** - Competitive insights
 
-## Automated Tracking
+## 🔄 Automation
 
-Your dashboard is powered by 5 automated workflows:
+Connected workflows:
+- **Reddit Post Auto-Tracker** - Daily 8 AM PST
+- **Brevo Email Metrics Sync** - Weekly Monday 9 AM PST
+- **Weekly Competitive Research** - Friday 11 AM PST
+- **Milestone Alerts** - Every 30 minutes
 
-1. **Reddit Post Auto-Tracker** - Daily at 8 AM PST
-2. **Brevo Email Metrics Sync** - Weekly on Mondays at 9 AM PST
-3. **Weekly Competitive Research** - Every Friday at 11 AM PST
-4. **Milestone Alerts** - Every 30 minutes
-5. **Amazon Revenue Import** - Sundays at 10 AM PST
+## 🎯 Milestones Tracked
 
-## Tech Stack
+- ✉️ **10, 50, 100, 500** email subscribers
+- 💰 **$1, $100, $500, $1000** revenue
+- 📝 **First Reddit post** live
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Charts**: Chart.js
-- **Data Source**: Airtable API
+## 🛠️ Tech Stack
+
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Charts**: Chart.js 4.4.1
+- **API**: Airtable REST API
 - **Hosting**: GitHub Pages
-- **Design**: Glassmorphism, gradient backgrounds, responsive grid
+- **Design**: Gradient glass-morphism UI
 
-## Milestones Tracked
+## 📱 Mobile Responsive
 
-### Email Subscribers
-- ✓ First 10 subscribers
-- ⏳ 50 subscribers
-- ⏳ 100 subscribers
-- ⏳ 500 subscribers
+Fully optimized for:
+- 📱 Mobile phones
+- 📱 Tablets
+- 💻 Desktops
+- 🖥️ Large displays
 
-### Revenue
-- ✓ First $1 earned
-- ⏳ $100 earned
-- ⏳ $500 earned
-- ⏳ $1,000 earned
+## 🔒 Security
 
-### Content
-- ✓ First post
-- ⏳ 30 pieces of content
-- ⏳ 100 pieces of content
+- PAT stored client-side (update only in your fork)
+- Read-only Airtable access
+- No server-side code required
+- HTTPS enforced via GitHub Pages
 
-## Mobile Responsive
+## 📈 Next Steps
 
-Dashboard automatically adapts to:
-- Desktop (1400px max width)
-- Tablet (grid adjusts)
-- Mobile (single column, optimized metrics)
-
-## Support
-
-Questions? Issues? Open a GitHub issue or check your Airtable automations.
+1. **Update PAT** in index.html
+2. **Post first Reddit content** to r/SkincareAddiction
+3. **Monitor milestone alerts** every 30 minutes
+4. **Review weekly research** every Friday
 
 ---
 
-**Built with ✨ by Astro**
-*Powered by Composio - Connecting AI to 500+ tools*
+Built with ✨ by Astro | Powered by Composio
