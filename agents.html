@@ -767,6 +767,21 @@
         // Initialize the dashboard
         function init() {
             renderAgentCards();
+
+            // Attach event listeners after DOM is ready
+            document.getElementById('agentModal').addEventListener('click', (e) => {
+                if (e.target.id === 'agentModal') {
+                    closeModal();
+                }
+            });
+
+            document.getElementById('taskInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitTask();
+            });
+
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
         }
 
         // Render agent cards
@@ -830,7 +845,7 @@
         }
 
         // Open agent modal with voice greeting
-        async async function openAgentModal(agent) {
+        async function openAgentModal(agent) {
             currentAgent = agent;
             const modal = document.getElementById('agentModal');
             const loading = document.getElementById('loadingIndicator');
@@ -1098,17 +1113,13 @@
                 const transcript = event.results[0][0].transcript;
                 document.getElementById('chatInput').value = transcript;
             };
-        }
 
         // Close modal
         function closeModal() {
             document.getElementById('agentModal').classList.remove('active');
             document.getElementById('taskInputContainer').classList.remove('active');
             currentAgent = null;
-        }
 
-        // Close modal on backdrop click
-        document.getElementById('agentModal').addEventListener('click', (e) => {
             if (e.target.id === 'agentModal') {
                 closeModal();
             }
