@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Agent Team</title>
+    <title>AI Agent Team - Marketing Empire</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -26,88 +26,100 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            transition: all 0.3s;
         }
         .back-btn:hover { background: rgba(255, 255, 255, 0.3); }
         h1 { color: white; text-align: center; font-size: 32px; }
-        .agents { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .agents { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; }
         .agent {
             background: white;
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
-        .agent h3 { color: #333; margin-bottom: 5px; }
-        .role { color: #666; font-size: 14px; margin-bottom: 15px; }
+        .agent:hover { transform: translateY(-4px); }
+        .agent h3 { color: #333; margin-bottom: 5px; font-size: 20px; }
+        .role { color: #666; font-size: 14px; margin-bottom: 15px; font-weight: 600; }
+        .tasks-title { font-size: 13px; color: #999; margin-bottom: 10px; font-weight: 600; }
         .task {
-            padding: 8px;
+            padding: 10px;
             background: #f5f5f5;
             border-radius: 6px;
             margin-bottom: 8px;
             font-size: 14px;
+            line-height: 1.4;
         }
         .status {
             display: inline-block;
-            padding: 4px 8px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             margin-right: 8px;
+            text-transform: uppercase;
         }
         .active { background: #74b9ff; color: #0984e3; }
-        .pending { background: #ffeaa7; color: #fdcb6e; }
+        .pending { background: #ffeaa7; color: #d63031; }
     </style>
 </head>
 <body>
+    <script>
+        // EXACT same auth check as dashboard.html
+        if (localStorage.getItem('isAuthenticated') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <div class="header">
-        <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+        <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
         <h1>🤖 AI Agent Team</h1>
-        <div style="width:100px;"></div>
+        <div style="width:120px;"></div>
     </div>
+
     <div class="agents">
         <div class="agent">
             <h3>Sophia</h3>
             <div class="role">Content & SEO Strategist</div>
-            <div class="task"><span class="status active">ACTIVE</span>Create 3 high-converting Reddit comments</div>
-            <div class="task"><span class="status pending">PENDING</span>Research top luxury skincare posts</div>
+            <div class="tasks-title">CURRENT TASKS</div>
+            <div class="task"><span class="status active">Active</span>Create 3 high-converting Reddit comments</div>
+            <div class="task"><span class="status pending">Pending</span>Research top-performing luxury skincare posts</div>
         </div>
+
         <div class="agent">
             <h3>Marcus</h3>
             <div class="role">Data & Analytics Lead</div>
-            <div class="task"><span class="status active">ACTIVE</span>Monitor Reddit automation</div>
-            <div class="task"><span class="status pending">PENDING</span>Track landing page traffic</div>
-            <div class="task"><span class="status pending">PENDING</span>Setup conversion tracking</div>
+            <div class="tasks-title">CURRENT TASKS</div>
+            <div class="task"><span class="status active">Active</span>Monitor Reddit automation performance</div>
+            <div class="task"><span class="status pending">Pending</span>Track landing page traffic sources</div>
+            <div class="task"><span class="status pending">Pending</span>Set up conversion tracking</div>
         </div>
+
         <div class="agent">
             <h3>Isabella</h3>
             <div class="role">Social Media Manager</div>
-            <div class="task"><span class="status pending">PENDING</span>Identify 5 high-traffic threads</div>
-            <div class="task"><span class="status pending">PENDING</span>Create r/30PlusSkinCare strategy</div>
+            <div class="tasks-title">CURRENT TASKS</div>
+            <div class="task"><span class="status pending">Pending</span>Identify 5 high-traffic skincare threads</div>
+            <div class="task"><span class="status pending">Pending</span>Create engagement strategy for r/30PlusSkinCare</div>
         </div>
+
         <div class="agent">
             <h3>Ava</h3>
             <div class="role">Email & Automation Specialist</div>
-            <div class="task"><span class="status active">ACTIVE</span>Verify Brevo email sequence</div>
-            <div class="task"><span class="status pending">PENDING</span>Test full funnel flow</div>
-            <div class="task"><span class="status pending">PENDING</span>Optimize email subject lines</div>
+            <div class="tasks-title">CURRENT TASKS</div>
+            <div class="task"><span class="status active">Active</span>Verify Brevo email sequence triggers</div>
+            <div class="task"><span class="status pending">Pending</span>Test full funnel flow</div>
+            <div class="task"><span class="status pending">Pending</span>Optimize email subject lines</div>
         </div>
+
         <div class="agent">
             <h3>Daniel</h3>
             <div class="role">Campaign & Ads Specialist</div>
-            <div class="task"><span class="status pending">PENDING</span>Research free traffic sources</div>
-            <div class="task"><span class="status pending">PENDING</span>Identify high-commission products</div>
-            <div class="task"><span class="status pending">PENDING</span>Create promotional calendar</div>
+            <div class="tasks-title">CURRENT TASKS</div>
+            <div class="task"><span class="status pending">Pending</span>Research free traffic sources beyond Reddit</div>
+            <div class="task"><span class="status pending">Pending</span>Identify high-commission Amazon products</div>
+            <div class="task"><span class="status pending">Pending</span>Create promotional calendar</div>
         </div>
     </div>
-    <script>
-        // Check authentication - use same key as dashboard
-        const isAuth = localStorage.getItem('isAuthenticated');
-        if (!isAuth || isAuth !== 'true') {
-            window.location.href = 'login.html';
-        }
-
-        function goBack() {
-            window.location.href = 'dashboard.html';
-        }
-    </script>
 </body>
 </html>
