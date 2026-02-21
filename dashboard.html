@@ -1092,6 +1092,152 @@
                 </div>
             </div>
 
+            <!-- Agent Activity Log -->
+            <div class="section-header">
+                <h2 class="section-title">🤖 Agent Activity</h2>
+            </div>
+            <div class="activity-log" id="activityLog">
+                <div class="activity-item">
+                    <div class="activity-icon">🎯</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Dashboard Deployed</div>
+                        <div class="activity-description">Marketing Empire Dashboard v2.0 live on GitHub Pages</div>
+                        <div class="activity-time">Just now</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">📊</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Airtable Base Created</div>
+                        <div class="activity-description">5 tables configured: System Overview, Product Performance, Reddit Performance, Email Metrics, Weekly Research</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">⏰</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Automations Scheduled</div>
+                        <div class="activity-description">4 cron jobs activated: Reddit tracker, Email sync, Research, Milestone alerts</div>
+                        <div class="activity-time">3 hours ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">📧</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Email Sequence Built</div>
+                        <div class="activity-description">5-email nurture sequence created in Brevo (Templates 6-10)</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">📄</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Lead Magnet Created</div>
+                        <div class="activity-description">Google Doc: 25+ luxury skincare dupes guide</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🔗</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Landing Page Live</div>
+                        <div class="activity-description">Brevo landing page published: https://bit.ly/4tOVo1J</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🛒</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Products Configured</div>
+                        <div class="activity-description">5 skincare products added to tracking (CeraVe, Olay, The Inkey List, The Ordinary)</div>
+                        <div class="activity-time">2 days ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">🎨</div>
+                    <div class="activity-content">
+                        <div class="activity-title">Reddit Post Generated</div>
+                        <div class="activity-description">AI-generated luxury vs drugstore comparison post ready</div>
+                        <div class="activity-time">2 days ago</div>
+                    </div>
+                </div>
+            </div>
+
+            
+
+            <!-- Agent Management Section -->
+            <div class="section-header">
+                <h2 class="section-title">🤖 Agent Management</h2>
+                <button class="btn" onclick="refreshAgents()" style="background: #667eea; color: white;">Refresh</button>
+            </div>
+
+            <div class="agent-grid" id="agentGrid">
+                <!-- Agent cards will be populated here -->
+            </div>
+
+            <!-- Agent Profile Modal -->
+            <div id="agentProfileModal" class="modal">
+                <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="agentProfileTitle">Agent Profile</h2>
+                        <button class="modal-close" onclick="closeAgentProfile()">×</button>
+                    </div>
+
+                    <div id="agentProfileContent">
+                        <!-- Content populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Brain Modal -->
+            <div id="agentBrainModal" class="modal">
+                <div class="modal-content" style="max-width: 900px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">🧠 Agent Brain</h2>
+                        <button class="modal-close" onclick="closeAgentBrain()">×</button>
+                    </div>
+
+                    <div id="agentBrainContent">
+                        <!-- Brain content populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG Upload Modal -->
+            <div id="ragUploadModal" class="modal">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2 class="modal-title">📚 Upload Knowledge</h2>
+                        <button class="modal-close" onclick="closeRAGUpload()">×</button>
+                    </div>
+
+                    <div style="padding: 20px;">
+                        <p style="margin-bottom: 20px; color: #718096;">
+                            Upload documents to teach this agent new skills. Supported formats: PDF, TXT, MD, DOCX, Video files.
+                        </p>
+
+                        <div class="form-group">
+                            <label class="form-label">Select File</label>
+                            <input type="file" id="ragFileInput" class="form-input" 
+                                   accept=".pdf,.txt,.md,.docx,.mp4,.mov"
+                                   onchange="handleRAGUpload(event)">
+                            <div class="form-help">
+                                Max file size: 10MB<br>
+                                The agent will learn from this content and add it as a skill.
+                            </div>
+                        </div>
+
+                        <div id="uploadProgress" style="display: none; margin-top: 20px;">
+                            <div style="background: #e2e8f0; height: 20px; border-radius: 10px; overflow: hidden;">
+                                <div id="uploadProgressBar" style="background: #667eea; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                            </div>
+                            <p id="uploadStatus" style="margin-top: 10px; color: #718096; text-align: center;">Processing...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
             <!-- AgentMail Interface -->
             <div class="section-header">
                 <h2 class="section-title">✉️ AgentMail Communications</h2>
