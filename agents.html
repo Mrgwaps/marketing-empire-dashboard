@@ -595,7 +595,87 @@
         }
 
         // Open agent modal with voice greeting
-        async function openAgentModal(agent) {
+        async 
+
+        // Voice function for agent speech
+        async function playAgentVoice(agentId) {
+            try {
+                const agent = AGENTS_DATA.find(a => a.id === agentId);
+                if (!agent) {
+                    console.error('Agent not found:', agentId);
+                    return;
+                }
+
+                const voiceBtn = document.querySelector('.voice-btn');
+                if (voiceBtn) {
+                    voiceBtn.disabled = true;
+                    voiceBtn.innerHTML = '🔊 Playing...';
+                }
+
+                // Create introduction text
+                const intro = `Hi! I'm ${agent.name}, your ${agent.role}. I'm currently working on ${agent.skills[0]} and ${agent.skills[1]}. How can I help you optimize your marketing today?`;
+
+                // ElevenLabs API configuration
+                const apiKey = '37b2d7684ea1b8f85b21cf63b5895567';
+                const voiceId = agent.voice_id || 'EXAVITQu4vr4xnSDxMaL';
+
+                const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'audio/mpeg',
+                        'Content-Type': 'application/json',
+                        'xi-api-key': apiKey
+                    },
+                    body: JSON.stringify({
+                        text: intro,
+                        model_id: 'eleven_flash_v2_5',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75,
+                            style: 0.5,
+                            use_speaker_boost: true
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+
+                audio.onended = () => {
+                    if (voiceBtn) {
+                        voiceBtn.disabled = false;
+                        voiceBtn.innerHTML = '🎤 Hear Voice Update';
+                    }
+                    URL.revokeObjectURL(audioUrl);
+                };
+
+                audio.onerror = () => {
+                    console.error('Audio playback error');
+                    if (voiceBtn) {
+                        voiceBtn.disabled = false;
+                        voiceBtn.innerHTML = '🎤 Hear Voice Update';
+                    }
+                };
+
+                await audio.play();
+
+            } catch (error) {
+                console.error('Voice error:', error);
+                const voiceBtn = document.querySelector('.voice-btn');
+                if (voiceBtn) {
+                    voiceBtn.disabled = false;
+                    voiceBtn.innerHTML = '🎤 Hear Voice Update';
+                }
+                alert('Voice playback failed. Please check your internet connection.');
+            }
+        }
+
+function openAgentModal(agent) {
             currentAgent = agent;
             const modal = document.getElementById('agentModal');
             const loading = document.getElementById('loadingIndicator');
