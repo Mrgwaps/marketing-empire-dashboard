@@ -444,6 +444,79 @@
             }
         ];
 
+
+        // Cached voice responses for instant playback (quick greetings)
+        const voiceCache = {
+            'sophia': 'https://temp.composio.dev/elevenlabs/sophia_greeting.mp3', // "Hey! I'm Sophia, ready to create content that converts!"
+            'marcus': 'https://temp.composio.dev/elevenlabs/marcus_greeting.mp3', // "Marcus here. Let's analyze the data and optimize performance."
+            'isabella': 'https://temp.composio.dev/elevenlabs/isabella_greeting.mp3', // "Hi! Isabella ready to engage our community!"
+            'ava': 'https://temp.composio.dev/elevenlabs/ava_greeting.mp3', // "Ava here! Email automation is my specialty!"
+            'daniel': 'https://temp.composio.dev/elevenlabs/daniel_greeting.mp3' // "Daniel reporting in. Let's run some high-impact campaigns!"
+        };
+
+
+        // Play cached voice + generate live task speech
+        async function playAgentVoice(agentId) {
+            const agent = agents.find(a => a.id === agentId);
+            if (!agent) return;
+
+            // Play cached greeting instantly for quick feedback
+            const cachedAudio = new Audio(voiceCache[agentId]);
+            cachedAudio.volume = 0.8;
+            cachedAudio.play().catch(err => console.log('Cached audio play failed:', err));
+
+            // In parallel, generate live task speech via ElevenLabs API
+            try {
+                const nextTask = agent.tasks.find(t => t.status === 'in-progress') || agent.tasks[0];
+                if (!nextTask) return;
+
+                // Personality-based task announcement
+                const personalities = {
+                    'sophia': `Here's what I'm working on: ${nextTask.title}. ${nextTask.description}`,
+                    'marcus': `Current focus: ${nextTask.title}. ${nextTask.description}`,
+                    'isabella': `On it! ${nextTask.title}. ${nextTask.description}`,
+                    'ava': `Working on: ${nextTask.title}. ${nextTask.description}`,
+                    'daniel': `Let's go! ${nextTask.title}. ${nextTask.description}`
+                };
+
+                const taskText = personalities[agentId] || nextTask.description;
+
+                // Generate speech via ElevenLabs (this happens in background while greeting plays)
+                const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${agent.voiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'audio/mpeg',
+                        'Content-Type': 'application/json',
+                        'xi-api-key': '37b2d7684ea1b8f85b21cf63b5895567'
+                    },
+                    body: JSON.stringify({
+                        text: taskText,
+                        model_id: 'eleven_monolingual_v1',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    // Queue the task speech to play after greeting finishes
+                    cachedAudio.addEventListener('ended', () => {
+                        const taskAudio = new Audio(audioUrl);
+                        taskAudio.volume = 0.8;
+                        taskAudio.play().catch(err => console.log('Task audio play failed:', err));
+                    });
+                }
+            } catch (err) {
+                console.log('Live task speech generation failed:', err);
+                // No problem - cached greeting already played
+            }
+        }
+
+
         // Chat history (in-memory storage)
         const chatHistory = {};
 
