@@ -31,8 +31,17 @@
             background: white; border-radius: 16px; padding: 24px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;
+            position: relative;
         }
         .agent-card:hover { transform: translateY(-5px); box-shadow: 0 15px 50px rgba(0,0,0,0.15); }
+        .agent-card.speaking { 
+            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
         .agent-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
         .agent-avatar {
             width: 80px; height: 80px; border-radius: 50%;
@@ -40,6 +49,14 @@
         }
         .agent-info h3 { font-size: 1.3rem; color: #333; margin-bottom: 4px; }
         .agent-role { color: #666; font-size: 0.9rem; }
+        .voice-indicator {
+            position: absolute; top: 20px; right: 20px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #667eea; color: white; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 1.2rem; opacity: 0; transition: opacity 0.3s;
+        }
+        .agent-card.speaking .voice-indicator { opacity: 1; }
         .agent-stats {
             display: grid; grid-template-columns: repeat(3, 1fr);
             gap: 12px; margin: 16px 0; padding: 16px;
@@ -60,6 +77,49 @@
         }
         .status-active { background: #d4edda; color: #155724; }
         .status-idle { background: #fff3cd; color: #856404; }
+        
+        /* Logging System */
+        .log-panel {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 400px; max-height: 300px;
+            background: rgba(30, 30, 30, 0.95); border-radius: 12px;
+            padding: 16px; overflow-y: auto; z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            font-family: 'Courier New', monospace; font-size: 0.85rem;
+        }
+        .log-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 1px solid #444;
+        }
+        .log-title { color: #667eea; font-weight: 600; }
+        .log-clear {
+            background: #667eea; color: white; border: none;
+            padding: 4px 12px; border-radius: 4px; cursor: pointer;
+            font-size: 0.75rem; transition: background 0.2s;
+        }
+        .log-clear:hover { background: #5568d3; }
+        .log-entry {
+            margin: 4px 0; padding: 6px 8px;
+            border-left: 3px solid; border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+        }
+        .log-timestamp {
+            color: #888; font-size: 0.75rem; margin-right: 8px;
+        }
+        .log-info { border-left-color: #17a2b8; color: #17a2b8; }
+        .log-success { border-left-color: #28a745; color: #28a745; }
+        .log-warning { border-left-color: #ffc107; color: #ffc107; }
+        .log-error { border-left-color: #dc3545; color: #dc3545; }
+        .log-toggle {
+            position: fixed; bottom: 340px; right: 20px;
+            background: rgba(102, 126, 234, 0.9); color: white;
+            border: none; padding: 12px 20px; border-radius: 8px;
+            cursor: pointer; font-weight: 600; z-index: 999;
+            transition: all 0.3s;
+        }
+        .log-toggle:hover { background: rgba(102, 126, 234, 1); }
+        .log-panel.hidden { display: none; }
     </style>
 </head>
 <body>
@@ -72,43 +132,294 @@
         <div class="agents-grid" id="agentsGrid"></div>
     </div>
 
+    <!-- Logging Panel -->
+    <button class="log-toggle" onclick="toggleLogPanel()">📋 Logs</button>
+    <div class="log-panel hidden" id="logPanel">
+        <div class="log-header">
+            <span class="log-title">🔍 System Logs</span>
+            <button class="log-clear" onclick="clearLogs()">Clear</button>
+        </div>
+        <div id="logEntries"></div>
+    </div>
+
     <script>
+        // ===== ROBUST LOGGING SYSTEM =====
+        class Logger {
+            constructor() {
+                this.logs = [];
+                this.maxLogs = 100;
+                this.container = document.getElementById('logEntries');
+            }
+
+            log(level, message, details = null) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = { level, message, details, timestamp };
+                this.logs.push(logEntry);
+                
+                // Keep only last maxLogs entries
+                if (this.logs.length > this.maxLogs) {
+                    this.logs.shift();
+                }
+                
+                this.render();
+                
+                // Also log to console for debugging
+                const consoleMethod = level === 'error' ? 'error' : 
+                                     level === 'warning' ? 'warn' : 'log';
+                console[consoleMethod](`[${level.toUpperCase()}] ${message}`, details || '');
+            }
+
+            info(message, details) { this.log('info', message, details); }
+            success(message, details) { this.log('success', message, details); }
+            warning(message, details) { this.log('warning', message, details); }
+            error(message, details) { this.log('error', message, details); }
+
+            render() {
+                if (!this.container) return;
+                this.container.innerHTML = this.logs
+                    .slice().reverse()
+                    .map(log => `
+                        <div class="log-entry log-${log.level}">
+                            <span class="log-timestamp">${log.timestamp}</span>
+                            <span>${log.message}</span>
+                            ${log.details ? `<div style="margin-top:4px;font-size:0.75rem;opacity:0.8;">${JSON.stringify(log.details)}</div>` : ''}
+                        </div>
+                    `).join('');
+            }
+
+            clear() {
+                this.logs = [];
+                this.render();
+            }
+        }
+
+        const logger = new Logger();
+
+        function toggleLogPanel() {
+            document.getElementById('logPanel').classList.toggle('hidden');
+        }
+
+        function clearLogs() {
+            logger.clear();
+        }
+
+        // ===== VOICE SYSTEM WITH FALLBACKS =====
+        class VoiceSystem {
+            constructor() {
+                this.elevenLabsKey = '37b2d7684ea1b8f85b21cf63b5895567';
+                this.useElevenLabs = true;
+                this.voiceMap = {
+                    1: { eleven: 'Sarah', chatterbox: 'Google US English' },
+                    2: { eleven: 'Josh', chatterbox: 'Google UK English Male' },
+                    3: { eleven: 'Rachel', chatterbox: 'Google US English' },
+                    4: { eleven: 'Bella', chatterbox: 'Microsoft Zira Desktop' },
+                    5: { eleven: 'Antoni', chatterbox: 'Google UK English Male' }
+                };
+                
+                // Check if Speech Synthesis API is available
+                this.hasSpeechSynthesis = 'speechSynthesis' in window;
+                
+                logger.info('Voice system initialized', { 
+                    elevenLabs: this.useElevenLabs, 
+                    browserTTS: this.hasSpeechSynthesis 
+                });
+            }
+
+            async speak(agentId, text, agentName) {
+                logger.info(`Agent ${agentName} speaking`, { method: this.useElevenLabs ? 'ElevenLabs' : 'Chatterbox' });
+                
+                try {
+                    if (this.useElevenLabs) {
+                        await this.speakElevenLabs(agentId, text, agentName);
+                    } else {
+                        this.speakChatterbox(text, agentName);
+                    }
+                } catch (error) {
+                    logger.error(`Voice error for ${agentName}`, { error: error.message });
+                    // Fallback to Chatterbox on any error
+                    this.speakChatterbox(text, agentName);
+                }
+            }
+
+            async speakElevenLabs(agentId, text, agentName) {
+                const voiceName = this.voiceMap[agentId].eleven;
+                const voiceId = this.getElevenLabsVoiceId(voiceName);
+                
+                try {
+                    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'audio/mpeg',
+                            'Content-Type': 'application/json',
+                            'xi-api-key': this.elevenLabsKey
+                        },
+                        body: JSON.stringify({
+                            text: text,
+                            model_id: 'eleven_flash_v2_5',
+                            voice_settings: {
+                                stability: 0.5,
+                                similarity_boost: 0.75
+                            }
+                        })
+                    });
+
+                    if (response.status === 401) {
+                        logger.warning('ElevenLabs quota exhausted, switching to Chatterbox fallback');
+                        this.useElevenLabs = false;
+                        this.speakChatterbox(text, agentName);
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`ElevenLabs API error: ${response.status}`);
+                    }
+
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    
+                    audio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        logger.success(`${agentName} finished speaking (ElevenLabs)`);
+                    };
+                    
+                    await audio.play();
+                    logger.success(`${agentName} speaking via ElevenLabs`);
+                    
+                } catch (error) {
+                    logger.error(`ElevenLabs failed for ${agentName}`, { error: error.message });
+                    throw error;
+                }
+            }
+
+            speakChatterbox(text, agentName) {
+                if (!this.hasSpeechSynthesis) {
+                    logger.error('Browser TTS not supported', { agent: agentName });
+                    return;
+                }
+
+                try {
+                    // Cancel any ongoing speech
+                    window.speechSynthesis.cancel();
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 1.0;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+
+                    // Try to find best voice (prefer Google/Microsoft high-quality voices)
+                    const voices = window.speechSynthesis.getVoices();
+                    const preferredVoice = voices.find(v => 
+                        v.name.includes('Google') || v.name.includes('Microsoft')
+                    ) || voices[0];
+                    
+                    if (preferredVoice) {
+                        utterance.voice = preferredVoice;
+                        logger.info(`Using voice: ${preferredVoice.name}`);
+                    }
+
+                    utterance.onend = () => {
+                        logger.success(`${agentName} finished speaking (Chatterbox)`);
+                    };
+
+                    utterance.onerror = (event) => {
+                        logger.error(`Chatterbox error for ${agentName}`, { error: event.error });
+                    };
+
+                    window.speechSynthesis.speak(utterance);
+                    logger.success(`${agentName} speaking via Chatterbox (Browser TTS)`);
+                    
+                } catch (error) {
+                    logger.error(`Chatterbox failed for ${agentName}`, { error: error.message });
+                }
+            }
+
+            getElevenLabsVoiceId(voiceName) {
+                const voiceIds = {
+                    'Sarah': 'EXAVITQu4vr4xnSDxMaL',
+                    'Josh': 'TxGEqnHWrfWFTfGW9XjX',
+                    'Rachel': '21m00Tcm4TlvDq8ikWAM',
+                    'Bella': 'EXAVITQu4vr4xnSDxMaL',
+                    'Antoni': 'ErXwobaYiN019PkySvjV'
+                };
+                return voiceIds[voiceName] || voiceIds['Sarah'];
+            }
+        }
+
+        const voiceSystem = new VoiceSystem();
+
+        // ===== AGENT DATA =====
         const agents = [
             { id: 1, name: 'Sophia Chen', role: 'Content & SEO Strategist', avatar: 'https://i.pravatar.cc/150?img=5',
               stats: { tasks_completed: 247, efficiency_score: 94, total_revenue_generated: 1250 },
-              current_tasks: ['✍️ Creating 3 high-converting Reddit comments', '📊 Researching top luxury skincare posts (24h)'], status: 'active' },
+              current_tasks: ['✍️ Creating 3 high-converting Reddit comments', '📊 Researching top luxury skincare posts (24h)'], 
+              status: 'active',
+              greeting: 'Hey! Sophia here, your content strategist. Let me tell you what I\'m working on right now...',
+              taskAgenda: 'I\'m crafting three high-converting Reddit comments with subtle CTAs that feel natural and helpful. Plus, I\'m analyzing the top luxury skincare posts from the last 24 hours to spot trending topics we should jump on!' },
             { id: 2, name: 'Marcus Rivera', role: 'Data & Analytics Lead', avatar: 'https://i.pravatar.cc/150?img=12',
               stats: { tasks_completed: 312, efficiency_score: 97, total_revenue_generated: 980 },
-              current_tasks: ['📈 Monitoring Reddit automation performance', '🔗 Tracking bit.ly clicks → email signups', '📍 Analyzing landing page traffic sources'], status: 'active' },
+              current_tasks: ['📈 Monitoring Reddit automation performance', '🔗 Tracking bit.ly clicks → email signups', '📍 Analyzing landing page traffic sources'], 
+              status: 'active',
+              greeting: 'Marcus checking in. Data looks good today. Here\'s what I\'m monitoring...',
+              taskAgenda: 'I\'m keeping a close eye on our Reddit automation performance metrics, tracking the conversion funnel from bit.ly clicks all the way through to email signups, and analyzing where our landing page traffic is actually coming from so we can double down on what works!' },
             { id: 3, name: 'Isabella Monroe', role: 'Social Media Manager', avatar: 'https://i.pravatar.cc/150?img=9',
               stats: { tasks_completed: 189, efficiency_score: 91, total_revenue_generated: 720 },
-              current_tasks: ['🎯 Identifying 5 high-traffic skincare threads', '💬 Creating engagement strategy for r/30PlusSkinCare'], status: 'active' },
+              current_tasks: ['🎯 Identifying 5 high-traffic skincare threads', '💬 Creating engagement strategy for r/30PlusSkinCare'], 
+              status: 'active',
+              greeting: 'Hi there! Isabella here with your social media update...',
+              taskAgenda: 'I\'m hunting down five high-traffic skincare threads where we can add real value and build trust, and I\'m crafting a killer engagement strategy specifically for r/30PlusSkinCare to establish you as the go-to expert!' },
             { id: 4, name: 'Ava Thompson', role: 'Email & Automation Specialist', avatar: 'https://i.pravatar.cc/150?img=16',
               stats: { tasks_completed: 203, efficiency_score: 88, total_revenue_generated: 1050 },
-              current_tasks: ['✉️ Verifying Brevo email sequence triggers', '🧪 Testing full funnel: landing → emails → affiliate', '📧 Optimizing email subject lines for open rates'], status: 'active' },
+              current_tasks: ['✉️ Verifying Brevo email sequence triggers', '🧪 Testing full funnel: landing → emails → affiliate', '📧 Optimizing email subject lines for open rates'], 
+              status: 'active',
+              greeting: 'Ava here! Let me walk you through the email optimization I\'m running...',
+              taskAgenda: 'I\'m making sure your Brevo email sequences fire at exactly the right moments, testing the entire funnel from landing page to affiliate click to catch any hiccups, and A/B testing subject lines to squeeze every bit of open rate improvement we can get!' },
             { id: 5, name: 'Daniel Cross', role: 'Campaign & Ads Specialist', avatar: 'https://i.pravatar.cc/150?img=33',
               stats: { tasks_completed: 156, efficiency_score: 92, total_revenue_generated: 890 },
-              current_tasks: ['🔍 Researching free traffic sources (Quora, forums)', '💰 Identifying high-commission Amazon products', '📅 Creating multi-platform promotional calendar'], status: 'active' }
+              current_tasks: ['🔍 Researching free traffic sources (Quora, forums)', '💰 Identifying high-commission Amazon products', '📅 Creating multi-platform promotional calendar'], 
+              status: 'active',
+              greeting: 'Daniel here with traffic expansion plans...',
+              taskAgenda: 'I\'m researching untapped free traffic sources like Quora and niche forums where your audience hangs out, hunting for those sweet high-commission Amazon products that convert like crazy, and building a promotional calendar to coordinate pushes across all platforms!' }
         ];
 
+        // ===== INITIALIZATION =====
         function init() {
-            console.log('Init called');
+            logger.info('System initializing');
+            
             const isAuthenticated = localStorage.getItem('isAuthenticated');
             if (isAuthenticated !== 'true') {
+                logger.warning('User not authenticated, redirecting to login');
                 window.location.href = 'login.html';
                 return;
             }
+
+            logger.success('Authentication verified');
             renderAgents();
+            
+            // Load voices for Speech Synthesis
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    const voices = window.speechSynthesis.getVoices();
+                    logger.info('Browser voices loaded', { count: voices.length });
+                };
+            }
         }
 
         function renderAgents() {
+            logger.info('Rendering agents');
             const grid = document.getElementById('agentsGrid');
-            if (!grid) { console.error('Grid not found'); return; }
+            if (!grid) { 
+                logger.error('Grid element not found');
+                return; 
+            }
 
             agents.forEach(agent => {
                 const card = document.createElement('div');
                 card.className = 'agent-card';
+                card.onclick = () => handleAgentClick(agent);
+                
                 card.innerHTML = `
+                    <div class="voice-indicator">🔊</div>
                     <div class="agent-header">
                         <img src="${agent.avatar}" alt="${agent.name}" class="agent-avatar">
                         <div class="agent-info">
@@ -129,10 +440,48 @@
                 `;
                 grid.appendChild(card);
             });
-            console.log('Rendered', agents.length, 'agents');
+            
+            logger.success(`Rendered ${agents.length} agents`);
+        }
+
+        async function handleAgentClick(agent) {
+            logger.info(`Agent card clicked: ${agent.name}`);
+            
+            const card = event.currentTarget;
+            card.classList.add('speaking');
+            
+            try {
+                // Speak greeting + task agenda
+                const fullMessage = `${agent.greeting} ${agent.taskAgenda}`;
+                await voiceSystem.speak(agent.id, fullMessage, agent.name);
+            } catch (error) {
+                logger.error(`Failed to play voice for ${agent.name}`, { error: error.message });
+            } finally {
+                setTimeout(() => {
+                    card.classList.remove('speaking');
+                }, 3000);
+            }
         }
 
         window.onload = init;
+        
+        // Prevent silent failures with global error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            logger.error('Global error caught', { 
+                message, 
+                source: source?.split('/').pop(), 
+                line: lineno, 
+                error: error?.message 
+            });
+            return false;
+        };
+
+        // Log unhandled promise rejections
+        window.onunhandledrejection = function(event) {
+            logger.error('Unhandled promise rejection', { 
+                reason: event.reason?.message || event.reason 
+            });
+        };
     </script>
 </body>
 </html>
