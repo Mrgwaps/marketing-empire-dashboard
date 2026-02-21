@@ -3,606 +3,516 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketing Empire Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Marketing Empire Dashboard | Live Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            padding: 20px;
             min-height: 100vh;
+            padding: 20px;
         }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        .header {
+        header {
             text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
             margin-bottom: 40px;
-            animation: fadeInDown 0.8s ease;
         }
-
-        .header h1 {
-            font-size: 3rem;
+        h1 {
+            font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
-        .header p {
-            font-size: 1.2rem;
+        .subtitle {
+            font-size: 1.1rem;
             opacity: 0.9;
         }
-
-        .refresh-indicator {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            margin-top: 10px;
-            font-size: 0.9rem;
+        .status-bar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-
-        .refresh-indicator.loading {
-            animation: pulse 1.5s infinite;
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 25px;
             margin-bottom: 30px;
         }
-
         .card {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255,255,255,0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: fadeInUp 0.8s ease;
         }
-
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
         .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
-        .metric {
+        .card-value {
             font-size: 2.5rem;
             font-weight: bold;
-            margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
         }
-
-        .metric.revenue {
-            color: #4ade80;
-        }
-
-        .metric.subs {
-            color: #60a5fa;
-        }
-
-        .metric.posts {
-            color: #fbbf24;
-        }
-
-        .sub-metric {
+        .card-change {
             font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 5px;
+            opacity: 0.9;
         }
-
-        .income-stream {
+        .positive { color: #4ade80; }
+        .negative { color: #f87171; }
+        .chart-container {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 25px;
+        }
+        .chart-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .income-streams {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stream-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+        .stream-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+        .stream-card.amazon { border-color: #FF9900; }
+        .stream-card.payhip { border-color: #00D9FF; }
+        .stream-card.agentmail { border-color: #10B981; }
+        .stream-card.kie { border-color: #8B5CF6; }
+        .stream-card.reddit { border-color: #FF4500; }
+        .stream-name {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stream-revenue {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stream-status {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .milestone-tracker {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 25px;
+        }
+        .milestone-item {
+            margin-bottom: 20px;
+        }
+        .milestone-label {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
-
-        .income-stream:last-child {
-            border-bottom: none;
-        }
-
-        .stream-name {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .stream-icon {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .stream-icon.amazon { background: #ff9900; }
-        .stream-icon.payhip { background: #5469d4; }
-        .stream-icon.leads { background: #10b981; }
-        .stream-icon.youtube { background: #ff0000; }
-        .stream-icon.agentmail { background: #8b5cf6; }
-
-        .stream-amount {
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
         .progress-bar {
             width: 100%;
-            height: 25px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
             overflow: hidden;
-            margin-top: 10px;
         }
-
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #4ade80, #10b981);
+            background: linear-gradient(90deg, #4ade80, #3b82f6);
+            border-radius: 10px;
             transition: width 1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: bold;
         }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin-top: 20px;
+        .refresh-info {
+            text-align: center;
+            padding: 15px;
+            font-size: 0.9rem;
+            opacity: 0.7;
         }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-indicator.active {
-            background: #4ade80;
-            box-shadow: 0 0 8px #4ade80;
-        }
-
-        .status-indicator.inactive {
-            background: #f87171;
-        }
-
-        .system-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .system-row:last-child {
-            border-bottom: none;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.6;
-            }
-        }
-
         .error-message {
             background: rgba(248, 113, 113, 0.2);
             border: 1px solid #f87171;
-            padding: 15px;
             border-radius: 10px;
+            padding: 15px;
             margin: 20px 0;
+            text-align: center;
         }
-
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .metric {
-                font-size: 2rem;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
+            h1 { font-size: 1.8rem; }
+            .card-value { font-size: 2rem; }
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>✨ Marketing Empire Dashboard</h1>
-            <p>Real-time tracking across 5+ income streams</p>
-            <div class="refresh-indicator" id="refreshIndicator">
+        <header>
+            <h1>🚀 Marketing Empire Dashboard</h1>
+            <p class="subtitle">Real-Time Analytics & Revenue Tracking</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator"></div>
+                <span>Live Data</span>
+            </div>
+            <div class="status-item">
                 <span id="lastUpdate">Loading...</span>
             </div>
-        </div>
-
-        <div class="grid">
-            <!-- Total Revenue Card -->
-            <div class="card">
-                <div class="card-title">💰 Total Revenue</div>
-                <div class="metric revenue" id="totalRevenue">$0.00</div>
-                <div class="sub-metric">Next milestone: First $1 earned</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="revenueProgress" style="width: 0%">0%</div>
-                </div>
-            </div>
-
-            <!-- Email Subscribers Card -->
-            <div class="card">
-                <div class="card-title">📧 Email Subscribers</div>
-                <div class="metric subs" id="totalSubs">0</div>
-                <div class="sub-metric">Next milestone: 10 subscribers</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="subsProgress" style="width: 0%">0%</div>
-                </div>
-            </div>
-
-            <!-- Content Published Card -->
-            <div class="card">
-                <div class="card-title">📝 Content Published</div>
-                <div class="metric posts" id="totalPosts">0</div>
-                <div class="sub-metric">Reddit posts tracked</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="postsProgress" style="width: 0%">0%</div>
-                </div>
+            <div class="status-item">
+                <span id="nextRefresh">Next refresh: 5m</span>
             </div>
         </div>
 
+        <!-- Key Metrics -->
         <div class="grid">
-            <!-- Revenue Breakdown Card -->
             <div class="card">
-                <div class="card-title">💵 Revenue by Stream</div>
-                <div class="income-stream">
-                    <div class="stream-name">
-                        <span class="stream-icon amazon"></span>
-                        Amazon Associates
-                    </div>
-                    <div class="stream-amount" id="amazonRevenue">$0.00</div>
-                </div>
-                <div class="income-stream">
-                    <div class="stream-name">
-                        <span class="stream-icon payhip"></span>
-                        Payhip Digital Products
-                    </div>
-                    <div class="stream-amount" id="payhipRevenue">$0.00</div>
-                </div>
-                <div class="income-stream">
-                    <div class="stream-name">
-                        <span class="stream-icon leads"></span>
-                        Lead Generation
-                    </div>
-                    <div class="stream-amount" id="leadsRevenue">$0.00</div>
-                </div>
-                <div class="income-stream">
-                    <div class="stream-name">
-                        <span class="stream-icon youtube"></span>
-                        YouTube (KIE AI)
-                    </div>
-                    <div class="stream-amount" id="youtubeRevenue">$0.00</div>
-                </div>
-                <div class="income-stream">
-                    <div class="stream-name">
-                        <span class="stream-icon agentmail"></span>
-                        AgentMail Services
-                    </div>
-                    <div class="stream-amount" id="agentmailRevenue">$0.00</div>
-                </div>
+                <div class="card-title">Total Revenue</div>
+                <div class="card-value" id="totalRevenue">$0.00</div>
+                <div class="card-change" id="revenueChange">Starting journey...</div>
             </div>
-
-            <!-- System Status Card -->
             <div class="card">
-                <div class="card-title">🔧 System Status</div>
-                <div class="system-row">
-                    <div>
-                        <span class="status-indicator active"></span>
-                        Airtable Dashboard
-                    </div>
-                    <span>✓ Active</span>
+                <div class="card-title">Email Subscribers</div>
+                <div class="card-value" id="totalSubscribers">0</div>
+                <div class="card-change" id="subscriberChange">Next: 10 subscribers</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Reddit Posts</div>
+                <div class="card-value" id="totalPosts">0</div>
+                <div class="card-change" id="postChange">Ready to launch</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Conversion Rate</div>
+                <div class="card-value" id="conversionRate">0%</div>
+                <div class="card-change" id="conversionChange">Building momentum...</div>
+            </div>
+        </div>
+
+        <!-- Income Streams -->
+        <div class="chart-container">
+            <h2 class="chart-title">💰 Income Streams</h2>
+            <div class="income-streams">
+                <div class="stream-card amazon">
+                    <div class="stream-name">Amazon Associates</div>
+                    <div class="stream-revenue" id="amazonRevenue">$0.00</div>
+                    <div class="stream-status">ID: megonlpro-20</div>
                 </div>
-                <div class="system-row">
-                    <div>
-                        <span class="status-indicator active"></span>
-                        Reddit Tracking
-                    </div>
-                    <span>✓ Daily</span>
+                <div class="stream-card payhip">
+                    <div class="stream-name">Payhip Digital Products</div>
+                    <div class="stream-revenue" id="payhipRevenue">$0.00</div>
+                    <div class="stream-status">Guides & Templates</div>
                 </div>
-                <div class="system-row">
-                    <div>
-                        <span class="status-indicator active"></span>
-                        Brevo Email Sync
-                    </div>
-                    <span>✓ Weekly</span>
+                <div class="stream-card agentmail">
+                    <div class="stream-name">AgentMail Leads</div>
+                    <div class="stream-revenue" id="agentmailRevenue">$0.00</div>
+                    <div class="stream-status">Automated Lead Gen</div>
                 </div>
-                <div class="system-row">
-                    <div>
-                        <span class="status-indicator active"></span>
-                        Milestone Alerts
-                    </div>
-                    <span>✓ Every 30 min</span>
+                <div class="stream-card kie">
+                    <div class="stream-name">KIE AI Video</div>
+                    <div class="stream-revenue" id="kieRevenue">$0.00</div>
+                    <div class="stream-status">YouTube Content</div>
                 </div>
-                <div class="system-row">
-                    <div>
-                        <span class="status-indicator active"></span>
-                        Competitive Research
-                    </div>
-                    <span>✓ Weekly</span>
+                <div class="stream-card reddit">
+                    <div class="stream-name">Reddit Affiliate</div>
+                    <div class="stream-revenue" id="redditRevenue">$0.00</div>
+                    <div class="stream-status">u/CaptainDigitals</div>
                 </div>
             </div>
         </div>
 
-        <div class="grid">
-            <!-- Revenue Trend Chart -->
-            <div class="card">
-                <div class="card-title">📈 Revenue Trend (30 Days)</div>
-                <div class="chart-container">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
+        <!-- Revenue Trend Chart -->
+        <div class="chart-container">
+            <h2 class="chart-title">📈 Revenue Trend (30 Days)</h2>
+            <canvas id="revenueChart"></canvas>
+        </div>
 
-            <!-- Traffic Chart -->
-            <div class="card">
-                <div class="card-title">👁️ Traffic & Engagement</div>
-                <div class="chart-container">
-                    <canvas id="trafficChart"></canvas>
+        <!-- Subscriber Growth Chart -->
+        <div class="chart-container">
+            <h2 class="chart-title">👥 Subscriber Growth</h2>
+            <canvas id="subscriberChart"></canvas>
+        </div>
+
+        <!-- Milestones -->
+        <div class="milestone-tracker">
+            <h2 class="chart-title">🎯 Milestone Progress</h2>
+            <div class="milestone-item">
+                <div class="milestone-label">
+                    <span>First 10 Subscribers</span>
+                    <span id="subscriberProgress">0 / 10</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="subscriberProgressBar" style="width: 0%"></div>
                 </div>
             </div>
+            <div class="milestone-item">
+                <div class="milestone-label">
+                    <span>First $1 Revenue</span>
+                    <span id="revenueProgress">$0.00 / $1.00</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="revenueProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="milestone-item">
+                <div class="milestone-label">
+                    <span>First Reddit Post</span>
+                    <span id="postProgress">0 / 1</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="postProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="refresh-info" id="refreshInfo">
+            Dashboard refreshes every 5 minutes | Data pulled from Airtable Base: appl6ToZSGjS6wU0K
         </div>
     </div>
 
     <script>
-        // Configuration
-        const AIRTABLE_BASE_ID = 'appl6ToZSGjS6wU0K';
-        const AIRTABLE_PAT = 'YOUR_AIRTABLE_PAT_HERE'; // User needs to add their Personal Access Token
+        // Airtable Configuration
+        const AIRTABLE_BASE_ID = "appl6ToZSGjS6wU0K";
+        const AIRTABLE_PAT = "YOUR_AIRTABLE_PAT_HERE"; // User needs to add their PAT
         const REFRESH_INTERVAL = 300000; // 5 minutes
 
-        // Chart configurations
-        let revenueChart, trafficChart;
+        // Initialize Charts
+        const chartConfig = {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { labels: { color: '#fff' } }
+            },
+            scales: {
+                y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+            }
+        };
 
-        // Initialize charts
-        function initCharts() {
-            const commonOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#fff',
-                            font: { size: 12 }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        ticks: { color: '#fff' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                    },
-                    x: {
-                        ticks: { color: '#fff' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                    }
-                }
-            };
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [],
+                    borderColor: '#4ade80',
+                    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: chartConfig
+        });
 
-            // Revenue Chart
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            revenueChart = new Chart(revenueCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Day 1', 'Day 7', 'Day 14', 'Day 21', 'Day 30'],
-                    datasets: [{
-                        label: 'Total Revenue',
-                        data: [0, 0, 0, 0, 0],
-                        borderColor: '#4ade80',
-                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: commonOptions
-            });
+        const subscriberCtx = document.getElementById('subscriberChart').getContext('2d');
+        const subscriberChart = new Chart(subscriberCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Subscribers',
+                    data: [],
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2
+                }]
+            },
+            options: chartConfig
+        });
 
-            // Traffic Chart
-            const trafficCtx = document.getElementById('trafficChart').getContext('2d');
-            trafficChart = new Chart(trafficCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Reddit', 'Email', 'YouTube', 'Direct'],
-                    datasets: [{
-                        label: 'Engagement',
-                        data: [0, 0, 0, 0],
-                        backgroundColor: [
-                            'rgba(255, 153, 0, 0.8)',
-                            'rgba(96, 165, 250, 0.8)',
-                            'rgba(255, 0, 0, 0.8)',
-                            'rgba(139, 92, 246, 0.8)'
-                        ]
-                    }]
-                },
-                options: commonOptions
-            });
-        }
-
-        // Fetch data from Airtable
-        async function fetchAirtableData() {
-            const indicator = document.getElementById('refreshIndicator');
-            indicator.classList.add('loading');
+        // Fetch Data from Airtable
+        async function fetchAirtableData(table) {
+            if (AIRTABLE_PAT === "YOUR_AIRTABLE_PAT_HERE") {
+                console.warn("Airtable PAT not configured - using demo data");
+                return null;
+            }
 
             try {
-                // Check if PAT is configured
-                if (AIRTABLE_PAT === 'YOUR_AIRTABLE_PAT_HERE') {
-                    console.log('Airtable PAT not configured. Using demo data.');
-                    updateDashboard(getDemoData());
-                    return;
+                const response = await fetch(
+                    `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${table}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${AIRTABLE_PAT}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Airtable API error: ${response.status}`);
                 }
 
-                // Fetch data from all tables
-                const headers = {
-                    'Authorization': `Bearer ${AIRTABLE_PAT}`,
-                    'Content-Type': 'application/json'
-                };
-
-                const [emailMetrics, productPerformance, redditPerformance] = await Promise.all([
-                    fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Email%20Metrics`, { headers }).then(r => r.json()),
-                    fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Product%20Performance`, { headers }).then(r => r.json()),
-                    fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Reddit%20Performance`, { headers }).then(r => r.json())
-                ]);
-
-                // Process and update dashboard
-                const data = processAirtableData(emailMetrics, productPerformance, redditPerformance);
-                updateDashboard(data);
-
+                const data = await response.json();
+                return data.records;
             } catch (error) {
-                console.error('Error fetching data:', error);
-                updateDashboard(getDemoData());
-            } finally {
-                indicator.classList.remove('loading');
-                document.getElementById('lastUpdate').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+                console.error(`Error fetching ${table}:`, error);
+                return null;
             }
         }
 
-        // Process Airtable data
-        function processAirtableData(emailMetrics, productPerformance, redditPerformance) {
-            // Extract latest metrics
-            const latestEmail = emailMetrics.records[0]?.fields || {};
-            const products = productPerformance.records || [];
-            const posts = redditPerformance.records || [];
+        // Update Dashboard
+        async function updateDashboard() {
+            document.getElementById('lastUpdate').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+
+            // Fetch all tables
+            const [products, emails, reddit] = await Promise.all([
+                fetchAirtableData('Product%20Performance'),
+                fetchAirtableData('Email%20Metrics'),
+                fetchAirtableData('Reddit%20Performance')
+            ]);
 
             // Calculate totals
-            const totalRevenue = products.reduce((sum, p) => sum + (p.fields['Revenue'] || 0), 0);
-            const totalSubs = latestEmail['Total Subscribers'] || 0;
-            const totalPosts = posts.length;
-
-            // Revenue by stream (from products table with Income Stream field)
-            const streams = {
-                amazon: products.filter(p => p.fields['Income Stream'] === 'Amazon Associates').reduce((s, p) => s + (p.fields['Revenue'] || 0), 0),
-                payhip: products.filter(p => p.fields['Income Stream'] === 'Payhip').reduce((s, p) => s + (p.fields['Revenue'] || 0), 0),
-                leads: products.filter(p => p.fields['Income Stream'] === 'Lead Gen').reduce((s, p) => s + (p.fields['Revenue'] || 0), 0),
-                youtube: products.filter(p => p.fields['Income Stream'] === 'YouTube').reduce((s, p) => s + (p.fields['Revenue'] || 0), 0),
-                agentmail: products.filter(p => p.fields['Income Stream'] === 'AgentMail').reduce((s, p) => s + (p.fields['Revenue'] || 0), 0)
+            let totalRevenue = 0;
+            let totalSubscribers = 0;
+            let totalPosts = 0;
+            let incomeBreakdown = {
+                amazon: 0,
+                payhip: 0,
+                agentmail: 0,
+                kie: 0,
+                reddit: 0
             };
 
-            return {
-                totalRevenue,
-                totalSubs,
-                totalPosts,
-                streams,
-                posts: posts.map(p => ({
-                    upvotes: p.fields['Upvotes'] || 0,
-                    comments: p.fields['Comments'] || 0
-                }))
-            };
-        }
+            if (products) {
+                products.forEach(record => {
+                    const revenue = parseFloat(record.fields['Revenue'] || 0);
+                    totalRevenue += revenue;
 
-        // Demo data for when Airtable is not connected
-        function getDemoData() {
-            return {
-                totalRevenue: 0,
-                totalSubs: 0,
-                totalPosts: 0,
-                streams: {
-                    amazon: 0,
-                    payhip: 0,
-                    leads: 0,
-                    youtube: 0,
-                    agentmail: 0
-                },
-                posts: []
-            };
-        }
+                    const source = record.fields['Source'] || '';
+                    if (source.includes('Amazon')) incomeBreakdown.amazon += revenue;
+                    else if (source.includes('Payhip')) incomeBreakdown.payhip += revenue;
+                    else if (source.includes('Agent')) incomeBreakdown.agentmail += revenue;
+                    else if (source.includes('KIE')) incomeBreakdown.kie += revenue;
+                    else if (source.includes('Reddit')) incomeBreakdown.reddit += revenue;
+                });
+            }
 
-        // Update dashboard UI
-        function updateDashboard(data) {
-            // Update main metrics
-            document.getElementById('totalRevenue').textContent = `$${data.totalRevenue.toFixed(2)}`;
-            document.getElementById('totalSubs').textContent = data.totalSubs;
-            document.getElementById('totalPosts').textContent = data.totalPosts;
+            if (emails) {
+                emails.forEach(record => {
+                    totalSubscribers += parseInt(record.fields['New Subscribers'] || 0);
+                });
+            }
 
-            // Update progress bars
-            const revenueProgress = Math.min((data.totalRevenue / 1) * 100, 100);
-            document.getElementById('revenueProgress').style.width = `${revenueProgress}%`;
-            document.getElementById('revenueProgress').textContent = `${revenueProgress.toFixed(0)}%`;
+            if (reddit) {
+                totalPosts = reddit.filter(r => r.fields['Status'] === 'Live').length;
+            }
 
-            const subsProgress = Math.min((data.totalSubs / 10) * 100, 100);
-            document.getElementById('subsProgress').style.width = `${subsProgress}%`;
-            document.getElementById('subsProgress').textContent = `${subsProgress.toFixed(0)}%`;
+            // Update UI
+            document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+            document.getElementById('totalSubscribers').textContent = totalSubscribers;
+            document.getElementById('totalPosts').textContent = totalPosts;
 
-            const postsProgress = Math.min((data.totalPosts / 30) * 100, 100);
-            document.getElementById('postsProgress').style.width = `${postsProgress}%`;
-            document.getElementById('postsProgress').textContent = `${postsProgress.toFixed(0)}%`;
+            // Income streams
+            document.getElementById('amazonRevenue').textContent = `$${incomeBreakdown.amazon.toFixed(2)}`;
+            document.getElementById('payhipRevenue').textContent = `$${incomeBreakdown.payhip.toFixed(2)}`;
+            document.getElementById('agentmailRevenue').textContent = `$${incomeBreakdown.agentmail.toFixed(2)}`;
+            document.getElementById('kieRevenue').textContent = `$${incomeBreakdown.kie.toFixed(2)}`;
+            document.getElementById('redditRevenue').textContent = `$${incomeBreakdown.reddit.toFixed(2)}`;
 
-            // Update revenue streams
-            document.getElementById('amazonRevenue').textContent = `$${data.streams.amazon.toFixed(2)}`;
-            document.getElementById('payhipRevenue').textContent = `$${data.streams.payhip.toFixed(2)}`;
-            document.getElementById('leadsRevenue').textContent = `$${data.streams.leads.toFixed(2)}`;
-            document.getElementById('youtubeRevenue').textContent = `$${data.streams.youtube.toFixed(2)}`;
-            document.getElementById('agentmailRevenue').textContent = `$${data.streams.agentmail.toFixed(2)}`;
+            // Milestones
+            const subscriberPercent = Math.min((totalSubscribers / 10) * 100, 100);
+            const revenuePercent = Math.min((totalRevenue / 1) * 100, 100);
+            const postPercent = totalPosts >= 1 ? 100 : 0;
 
-            // Update charts (simplified for demo - would use real historical data)
-            revenueChart.data.datasets[0].data = [0, 0, 0, 0, data.totalRevenue];
+            document.getElementById('subscriberProgress').textContent = `${totalSubscribers} / 10`;
+            document.getElementById('subscriberProgressBar').style.width = `${subscriberPercent}%`;
+
+            document.getElementById('revenueProgress').textContent = `$${totalRevenue.toFixed(2)} / $1.00`;
+            document.getElementById('revenueProgressBar').style.width = `${revenuePercent}%`;
+
+            document.getElementById('postProgress').textContent = `${totalPosts} / 1`;
+            document.getElementById('postProgressBar').style.width = `${postPercent}%`;
+
+            // Update charts with sample data
+            const last30Days = Array.from({length: 30}, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() - (29 - i));
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+
+            revenueChart.data.labels = last30Days.slice(-7);
+            revenueChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, totalRevenue];
             revenueChart.update();
 
-            const totalEngagement = data.posts.reduce((sum, p) => sum + p.upvotes + p.comments, 0);
-            trafficChart.data.datasets[0].data = [totalEngagement, data.totalSubs, 0, 0];
-            trafficChart.update();
+            subscriberChart.data.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            subscriberChart.data.datasets[0].data = [0, 0, 0, totalSubscribers];
+            subscriberChart.update();
+
+            // Next refresh countdown
+            let countdown = 300; // 5 minutes
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                const minutes = Math.floor(countdown / 60);
+                const seconds = countdown % 60;
+                document.getElementById('nextRefresh').textContent = 
+                    `Next refresh: ${minutes}m ${seconds}s`;
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    updateDashboard();
+                }
+            }, 1000);
         }
 
-        // Initialize
-        initCharts();
-        fetchAirtableData();
-
-        // Auto-refresh every 5 minutes
-        setInterval(fetchAirtableData, REFRESH_INTERVAL);
+        // Initial load
+        updateDashboard();
     </script>
 </body>
 </html>
