@@ -1,73 +1,137 @@
 # Marketing Empire Dashboard
 
-A real-time analytics dashboard for tracking marketing performance metrics.
+**Live Dashboard:** [https://mrgwaps.github.io/marketing-empire-dashboard/](https://mrgwaps.github.io/marketing-empire-dashboard/)
+
+## Overview
+
+Real-time analytics dashboard for tracking multi-platform marketing performance across affiliate programs, email campaigns, social media, and digital product sales.
 
 ## Features
 
-- 📊 Real-time data visualization with Chart.js
-- 🔐 Secure authentication system
-- ⚙️ Easy configuration via settings panel
-- 📱 Mobile responsive design
-- 🔄 Auto-refresh every 5 minutes
-- 🎨 Modern gradient UI
+### 📊 **Performance Monitoring**
+- Real-time revenue tracking
+- Subscriber growth metrics
+- Email engagement analytics
+- Social media performance
 
-## Setup Instructions
+### ⏰ **Automated Task Scheduling**
+- Live countdown timers for scheduled tasks
+- Cron-based automation tracking
+- Next run time display
+- Task frequency management
 
-### 1. Clone and Deploy
+### 💰 **Income Stream Management**
+- Multiple revenue source tracking
+- Interactive filtering
+- Performance comparison
+- Growth metrics
 
-This dashboard is designed for GitHub Pages deployment:
+### 🤖 **Agent Activity Log**
+- Comprehensive action history
+- Product creation tracking
+- Channel subscription monitoring
+- System event logging
 
-1. Fork or clone this repository
-2. Enable GitHub Pages in repository settings
-3. Set source to `main` branch
+### ✉️ **AgentMail Interface**
+- Communication hub
+- Inbox/Sent/Automated views
+- Integration-ready design
 
-### 2. Configure Airtable Integration
+### 🎛️ **Throttle Controls**
+- Post frequency management
+- Campaign rate limiting
+- API rate control
+- Auto-refresh intervals
 
-1. Create an Airtable Personal Access Token (PAT):
-   - Visit https://airtable.com/create/tokens
-   - Create token with `data.records:read` scope
-   - Copy the generated token
+### 📈 **Interactive Charts**
+- Revenue trends (30-day)
+- Subscriber growth
+- Product performance
+- Email engagement metrics
 
-2. Log into the dashboard:
-   - Visit your GitHub Pages URL
-   - Use your credentials to log in
+### 📋 **System Health & Logging**
+- Real-time status monitoring
+- Verbose logging console
+- Error tracking
+- System diagnostics
 
-3. Configure PAT:
-   - Click the ⚙️ settings icon (top-right)
-   - Paste your Airtable PAT
-   - Click "Save & Reload"
+## Setup
 
-### 3. Airtable Base Structure
+1. **Visit the dashboard:** [Live URL](https://mrgwaps.github.io/marketing-empire-dashboard/)
+2. **Login** with your credentials
+3. **Configure Settings:** 
+   - Click ⚙️ Settings in the top-right
+   - Enter your Airtable Personal Access Token (PAT)
+   - Required scope: `data.records:read`
+   - Create token at: [https://airtable.com/create/tokens](https://airtable.com/create/tokens)
+4. **Start tracking!** Dashboard auto-refreshes every 5 minutes
 
-Your Airtable base should include these tables:
+## Configuration
 
-- **Email Metrics**: Track subscriber growth and email performance
-- **Product Performance**: Monitor product sales and revenue
-- **Reddit Performance**: Track post engagement and karma
-- **System Overview**: General resources and tracking
+The dashboard connects to Airtable for data storage. You'll need:
 
-## Usage
+- **Airtable Base** with tables:
+  - System Overview
+  - Product Performance
+  - Reddit Performance
+  - Email Metrics
+  - Weekly Research
 
-- **Login**: Use configured credentials to access dashboard
-- **Settings**: Click ⚙️ to update Airtable PAT
-- **Auto-refresh**: Data updates every 5 minutes automatically
-- **Logout**: Click "Logout" to end session
+- **Airtable PAT** with `data.records:read` scope
 
-## Tech Stack
+All configuration is done through the Settings modal - no file editing required.
 
-- Pure HTML/CSS/JavaScript
-- Chart.js for visualizations
-- Airtable API for data
-- LocalStorage for configuration
-- GitHub Pages for hosting
+## Technology Stack
+
+- **Frontend:** HTML, CSS, JavaScript
+- **Charts:** Chart.js v4.4.0
+- **Data Source:** Airtable API
+- **Hosting:** GitHub Pages
+- **Authentication:** Client-side with localStorage
 
 ## Security
 
-- Authentication via localStorage session
-- PAT stored locally in browser only
-- No server-side storage
-- Configure PAT after deployment
+- Client-side authentication
+- PAT stored in browser localStorage
+- Read-only Airtable access
+- No server-side processing
+- All credentials configured post-login via Settings
+
+## Features in Detail
+
+### Task Countdown System
+Real-time countdown calculation for scheduled cron jobs with timezone handling (PST). Displays time until next run in days, hours, minutes, and seconds.
+
+### Income Stream Tracking
+Track multiple revenue sources:
+- Affiliate programs
+- Digital product sales
+- Email list value
+- Subscription services
+- Video content monetization
+
+### Throttle Controls
+Adjustable sliders for:
+- Social media posting frequency (paused to 2x daily)
+- Email campaign rates (paused to 3x daily)
+- API request limits (10-100 req/min)
+- Dashboard refresh intervals (1-30 minutes)
+
+### Logging Console
+Verbose system logging with color-coded messages:
+- 🔵 Info: General operations
+- ✅ Success: Completed actions
+- ⚠️ Warning: Non-critical issues
+- ❌ Error: Critical failures
 
 ## License
 
-MIT License - feel free to customize for your needs!
+MIT License - feel free to use and modify for your own projects.
+
+## Support
+
+For issues or questions, open an issue on GitHub.
+
+---
+
+**Built with ✨ by AI Agent**
