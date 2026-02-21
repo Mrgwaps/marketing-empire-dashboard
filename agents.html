@@ -3,29 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Agent Team - Marketing Empire Dashboard</title>
+    <title>AI Agent Team</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
         }
-
-        .back-button {
+        .back-btn {
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
@@ -33,183 +26,82 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s;
         }
-
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        h1 {
-            color: white;
-            text-align: center;
-            font-size: 32px;
-        }
-
-        .agent-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .agent-card {
+        .back-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        h1 { color: white; text-align: center; font-size: 32px; }
+        .agents { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .agent {
             background: white;
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
         }
-
-        .agent-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .agent-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .agent-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-right: 15px;
-        }
-
-        .agent-info h3 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .agent-role {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .task-list {
-            margin-top: 15px;
-        }
-
-        .task-item {
+        .agent h3 { color: #333; margin-bottom: 5px; }
+        .role { color: #666; font-size: 14px; margin-bottom: 15px; }
+        .task {
             padding: 8px;
             background: #f5f5f5;
             border-radius: 6px;
             margin-bottom: 8px;
             font-size: 14px;
         }
-
-        .status-badge {
+        .status {
             display: inline-block;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
+            margin-right: 8px;
         }
-
-        .status-pending { background: #ffeaa7; color: #fdcb6e; }
-        .status-active { background: #74b9ff; color: #0984e3; }
-        .status-complete { background: #55efc4; color: #00b894; }
+        .active { background: #74b9ff; color: #0984e3; }
+        .pending { background: #ffeaa7; color: #fdcb6e; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <button class="back-button" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
-        <h1>🤖 AI Agent Team</h1>
-        <div style="width: 100px;"></div>
-    </div>
-
-    <div class="agent-cards" id="agentCards"></div>
-
     <script>
-        // Authentication check
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-        if (!user) {
+        if (!localStorage.getItem('user')) {
             window.location.href = 'login.html';
         }
-
-        const AGENTS = [
-            {
-                id: 'sophia',
-                name: 'Sophia',
-                role: 'Content & SEO Strategist',
-                avatar: 'https://i.pravatar.cc/150?img=47',
-                tasks: [
-                    { text: 'Create 3 high-converting Reddit comments', status: 'active' },
-                    { text: 'Research top-performing luxury skincare posts', status: 'pending' }
-                ]
-            },
-            {
-                id: 'marcus',
-                name: 'Marcus',
-                role: 'Data & Analytics Lead',
-                avatar: 'https://i.pravatar.cc/150?img=12',
-                tasks: [
-                    { text: 'Monitor Reddit automation performance', status: 'active' },
-                    { text: 'Track landing page traffic sources', status: 'pending' },
-                    { text: 'Set up conversion tracking', status: 'pending' }
-                ]
-            },
-            {
-                id: 'isabella',
-                name: 'Isabella',
-                role: 'Social Media Manager',
-                avatar: 'https://i.pravatar.cc/150?img=44',
-                tasks: [
-                    { text: 'Identify 5 high-traffic skincare threads', status: 'pending' },
-                    { text: 'Create engagement strategy for r/30PlusSkinCare', status: 'pending' }
-                ]
-            },
-            {
-                id: 'ava',
-                name: 'Ava',
-                role: 'Email & Automation Specialist',
-                avatar: 'https://i.pravatar.cc/150?img=45',
-                tasks: [
-                    { text: 'Verify Brevo email sequence triggers', status: 'active' },
-                    { text: 'Test full funnel flow', status: 'pending' },
-                    { text: 'Optimize email subject lines', status: 'pending' }
-                ]
-            },
-            {
-                id: 'daniel',
-                name: 'Daniel',
-                role: 'Campaign & Ads Specialist',
-                avatar: 'https://i.pravatar.cc/150?img=13',
-                tasks: [
-                    { text: 'Research free traffic sources', status: 'pending' },
-                    { text: 'Identify high-commission Amazon products', status: 'pending' },
-                    { text: 'Create promotional calendar', status: 'pending' }
-                ]
-            }
-        ];
-
-        function renderAgents() {
-            const container = document.getElementById('agentCards');
-            container.innerHTML = AGENTS.map(agent => `
-                <div class="agent-card">
-                    <div class="agent-header">
-                        <img src="${agent.avatar}" alt="${agent.name}" class="agent-avatar">
-                        <div class="agent-info">
-                            <h3>${agent.name}</h3>
-                            <div class="agent-role">${agent.role}</div>
-                        </div>
-                    </div>
-                    <div class="task-list">
-                        <strong>Current Tasks:</strong>
-                        ${agent.tasks.map(task => `
-                            <div class="task-item">
-                                <span class="status-badge status-${task.status}">${task.status}</span>
-                                ${task.text}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        renderAgents();
     </script>
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back</button>
+        <h1>🤖 AI Agent Team</h1>
+        <div style="width:100px;"></div>
+    </div>
+    <div class="agents">
+        <div class="agent">
+            <h3>Sophia</h3>
+            <div class="role">Content & SEO Strategist</div>
+            <div class="task"><span class="status active">ACTIVE</span>Create 3 high-converting Reddit comments</div>
+            <div class="task"><span class="status pending">PENDING</span>Research top luxury skincare posts</div>
+        </div>
+        <div class="agent">
+            <h3>Marcus</h3>
+            <div class="role">Data & Analytics Lead</div>
+            <div class="task"><span class="status active">ACTIVE</span>Monitor Reddit automation</div>
+            <div class="task"><span class="status pending">PENDING</span>Track landing page traffic</div>
+            <div class="task"><span class="status pending">PENDING</span>Setup conversion tracking</div>
+        </div>
+        <div class="agent">
+            <h3>Isabella</h3>
+            <div class="role">Social Media Manager</div>
+            <div class="task"><span class="status pending">PENDING</span>Identify 5 high-traffic threads</div>
+            <div class="task"><span class="status pending">PENDING</span>Create r/30PlusSkinCare strategy</div>
+        </div>
+        <div class="agent">
+            <h3>Ava</h3>
+            <div class="role">Email & Automation Specialist</div>
+            <div class="task"><span class="status active">ACTIVE</span>Verify Brevo email sequence</div>
+            <div class="task"><span class="status pending">PENDING</span>Test full funnel flow</div>
+            <div class="task"><span class="status pending">PENDING</span>Optimize email subject lines</div>
+        </div>
+        <div class="agent">
+            <h3>Daniel</h3>
+            <div class="role">Campaign & Ads Specialist</div>
+            <div class="task"><span class="status pending">PENDING</span>Research free traffic sources</div>
+            <div class="task"><span class="status pending">PENDING</span>Identify high-commission products</div>
+            <div class="task"><span class="status pending">PENDING</span>Create promotional calendar</div>
+        </div>
+    </div>
 </body>
 </html>
