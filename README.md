@@ -1,118 +1,121 @@
-# 📊 Marketing Empire Dashboard
+# Marketing Empire Dashboard 🚀
 
 **Live Dashboard:** https://mrgwaps.github.io/marketing-empire-dashboard/
 
-A sophisticated real-time analytics dashboard tracking your complete marketing automation empire across 5+ income streams.
+Real-time tracking of your affiliate marketing empire across 5+ income streams.
 
-## 🎯 Features
+## Features
 
-### Real-Time Metrics
-- **Total Revenue** - Aggregate earnings across all platforms
-- **Email Subscribers** - Growing list with milestone tracking
-- **Content Pipeline** - Posts, videos, articles across platforms
-- **API Usage** - Cost monitoring for all integrated services
+### 📊 Real-Time Metrics
+- **Total Revenue** across all income streams
+- **Email Subscribers** with milestone tracking
+- **Content Published** (Reddit posts, YouTube videos)
 
-### Income Stream Tracking
-1. **Amazon Associates** (API: AKPA22X69E1756285391)
-2. **Payhip Digital Products**
-3. **Lead Generation** (AgentMail automation)
-4. **Video Content** (KIE AI generated)
-5. **Reddit Affiliate** (Active)
+### 💰 Income Streams
+1. **Amazon Associates** - Luxury beauty product commissions
+2. **Payhip Digital Products** - Guides, templates, cheat sheets
+3. **Lead Generation** - AgentMail services
+4. **YouTube** - KIE AI automated video content
+5. **AgentMail Services** - Autonomous email automation
 
-### Live Charts
-- Revenue trend (7-day view)
-- Email growth trajectory
-- Content distribution by platform
-- Traffic source breakdown
+### 📈 Visualizations
+- Revenue trend chart (30-day view)
+- Traffic & engagement breakdown
+- Milestone progress bars
+- System status indicators
 
-### Milestone Progress
-- First 10 subscribers
-- First dollar earned
-- 30 pieces of content created
+### 🔄 Automation
+- Auto-refreshes every 5 minutes
+- Pulls live data from Airtable
+- Mobile-responsive design
+- Animated charts and metrics
 
-## 🔧 Setup Instructions
+## Setup Instructions
 
-### Step 1: Get Your Airtable Personal Access Token (PAT)
+### 1. Get Your Airtable Personal Access Token (PAT)
 
 1. Go to https://airtable.com/create/tokens
-2. Click **Create new token**
-3. Name it: `Marketing Dashboard API`
+2. Click "Create new token"
+3. Name it: "Marketing Dashboard"
 4. Add these scopes:
    - `data.records:read`
    - `schema.bases:read`
 5. Add access to base: `Project 10X` (appl6ToZSGjS6wU0K)
-6. Click **Create token**
-7. **Copy the token** (starts with `pat...`)
+6. Click "Create token"
+7. Copy the token (starts with `pat...`)
 
-### Step 2: Update Dashboard Configuration
+### 2. Configure the Dashboard
 
-1. Edit `index.html` in this repository
-2. Find line ~385: `token: 'YOUR_AIRTABLE_PAT_HERE',`
-3. Replace with your actual token:
-   ```javascript
-   token: 'patXXXXXXXXXXXXXXXX',
-   ```
-4. Commit and push the change
+1. Open `index.html` in a text editor
+2. Find line 390: `const AIRTABLE_PAT = 'YOUR_AIRTABLE_PAT_HERE';`
+3. Replace `YOUR_AIRTABLE_PAT_HERE` with your actual token
+4. Save the file
+5. Commit and push to GitHub
 
-### Step 3: Wait for Deployment
+### 3. Enable GitHub Pages (Already Done!)
 
-GitHub Pages will automatically rebuild (1-2 minutes). Your dashboard will be live at:
+GitHub Pages is already configured and live at:
 **https://mrgwaps.github.io/marketing-empire-dashboard/**
 
-## 📈 Data Sources
+## Airtable Integration
 
-The dashboard pulls real-time data from your Airtable base **Project 10X**:
+The dashboard pulls data from these tables in your `Project 10X` base:
 
-| Table | Purpose |
-|-------|---------|
-| **Product Performance** | Amazon affiliate products, clicks, revenue |
-| **Reddit Performance** | Posts, upvotes, comments, profile clicks |
-| **Email Metrics** | Signups, campaigns, open/click rates |
-| **Payhip Sales** | Digital product revenue |
-| **Multi-Platform Performance** | Cross-platform content tracking |
-| **Video Performance** | KIE AI generated video metrics |
+- **System Overview** - Resources and tools tracking
+- **Product Performance** - Revenue by product and income stream
+- **Reddit Performance** - Post engagement metrics
+- **Email Metrics** - Subscriber counts and growth
+- **Weekly Research** - Competitive intelligence
 
-## 🔄 Auto-Refresh
+## Automated Tracking
 
-Dashboard automatically refreshes data every **5 minutes** via Airtable API.
+Your dashboard is powered by 5 automated workflows:
 
-## 🎨 Design Features
+1. **Reddit Post Auto-Tracker** - Daily at 8 AM PST
+2. **Brevo Email Metrics Sync** - Weekly on Mondays at 9 AM PST
+3. **Weekly Competitive Research** - Every Friday at 11 AM PST
+4. **Milestone Alerts** - Every 30 minutes
+5. **Amazon Revenue Import** - Sundays at 10 AM PST
 
-- Dark theme optimized for extended viewing
-- Responsive grid layout (mobile-friendly)
-- Real-time Chart.js visualizations
-- Gradient accents and hover effects
-- Live update indicator
+## Tech Stack
 
-## 🚀 Technology Stack
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **Charts**: Chart.js
+- **Data Source**: Airtable API
+- **Hosting**: GitHub Pages
+- **Design**: Glassmorphism, gradient backgrounds, responsive grid
 
-- **Frontend:** Pure HTML/CSS/JavaScript
-- **Charts:** Chart.js 4.4.0
-- **Data:** Airtable REST API
-- **Hosting:** GitHub Pages (free, HTTPS-enabled)
-- **Automation:** Composio-powered workflows
+## Milestones Tracked
 
-## 📊 Tracked APIs
+### Email Subscribers
+- ✓ First 10 subscribers
+- ⏳ 50 subscribers
+- ⏳ 100 subscribers
+- ⏳ 500 subscribers
 
-- Amazon Associates API
-- Payhip API
-- AgentMail API
-- KIE AI API
-- Hyperbrowser API
-- Airtable API
+### Revenue
+- ✓ First $1 earned
+- ⏳ $100 earned
+- ⏳ $500 earned
+- ⏳ $1,000 earned
 
-## 🔐 Security
+### Content
+- ✓ First post
+- ⏳ 30 pieces of content
+- ⏳ 100 pieces of content
 
-- PAT stored client-side (only you see it)
-- HTTPS enforced
-- Read-only access to Airtable
-- No server-side processing
+## Mobile Responsive
 
-## 📝 Notes
+Dashboard automatically adapts to:
+- Desktop (1400px max width)
+- Tablet (grid adjusts)
+- Mobile (single column, optimized metrics)
 
-Built with [Composio](https://composio.dev) - the platform connecting AI agents to 500+ external tools for seamless automation.
+## Support
+
+Questions? Issues? Open a GitHub issue or check your Airtable automations.
 
 ---
 
-**Last Updated:** February 21, 2026  
-**Status:** ✅ Live and tracking
+**Built with ✨ by Astro**
+*Powered by Composio - Connecting AI to 500+ tools*
