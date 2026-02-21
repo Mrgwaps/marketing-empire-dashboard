@@ -545,6 +545,15 @@
 
         // Render agent cards
         function renderAgentCards() {
+            
+            // Prevent multiple renders that cause flickering
+            if (window.__agentsRendered) {
+                console.log('[Agents] Already rendered, skipping');
+                return;
+            }
+            window.__agentsRendered = true;
+            console.log('[Agents] Rendering agent cards...');
+
             const grid = document.getElementById('agentsGrid');
             grid.innerHTML = '';
 
