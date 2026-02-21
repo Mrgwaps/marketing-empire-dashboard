@@ -1115,23 +1115,32 @@
             };
 
         }
+
         // Close modal
         function closeModal() {
             document.getElementById('agentModal').classList.remove('active');
             document.getElementById('taskInputContainer').classList.remove('active');
             currentAgent = null;
-
-
-        // Enter key handlers
-        document.getElementById('taskInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') submitTask();
-        });
-
-        document.getElementById('chatInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendChatMessage();
-        });
+        }
 
         // Initialize on load
+        function init() {
+            // Check authentication
+            if (!localStorage.getItem('isAuthenticated')) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Enter key handlers
+            document.getElementById('taskInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitTask();
+            });
+
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+        }
+
         window.onload = init;
     </script>
 </body>
