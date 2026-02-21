@@ -420,8 +420,32 @@
     </style>
 </head>
 <body>
+    <!-- Authentication Check -->
+    <script>
+        // Redirect to login if not authenticated
+        if (!localStorage.getItem('isAuthenticated')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+
     <div class="container">
-        <div class="header">
+        
+            <button class="btn btn-back" onclick="window.location.href='dashboard.html'" style="
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+                ← Back to Dashboard
+            </button>
+<div class="header">
             <h1>✨ Marketing Empire - AI Agent Team</h1>
             <p>Your Elite Squad of 5 AI Marketing Professionals</p>
         </div>
