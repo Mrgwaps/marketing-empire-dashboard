@@ -120,7 +120,221 @@
         }
         .log-toggle:hover { background: rgba(102, 126, 234, 1); }
         .log-panel.hidden { display: none; }
-    </style>
+    
+        /* Agent Detail Modal Styles */
+        .agent-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .agent-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .agent-modal-content {
+            position: relative;
+            background: white;
+            border-radius: 24px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .agent-modal-header {
+            padding: 32px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+
+        .agent-modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-modal-close:hover {
+            background: #fee;
+            color: #dc2626;
+            transform: rotate(90deg);
+        }
+
+        .agent-modal-title-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .agent-modal-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .agent-modal-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 8px 0;
+        }
+
+        .agent-modal-subtitle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        .agent-modal-body {
+            padding: 32px;
+        }
+
+        .agent-modal-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .agent-modal-stat {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .agent-modal-stat-label {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .agent-modal-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .agent-modal-section {
+            margin-bottom: 32px;
+        }
+
+        .agent-modal-section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .agent-modal-description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #475569;
+        }
+
+        .agent-capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .agent-capability-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-modal-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .agent-modal-task-item {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-modal-task-item.success {
+            border-left-color: #10b981;
+        }
+
+        .agent-modal-task-item.pending {
+            border-left-color: #f59e0b;
+        }
+
+        .agent-modal-task-item.failed {
+            border-left-color: #ef4444;
+        }
+
+        .agent-modal-chart {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            height: 300px;
+        }
+
+</style>
 </head>
 <body>
     <div class="container">
@@ -482,6 +696,148 @@
                 reason: event.reason?.message || event.reason 
             });
         };
-    </script>
+    
+        // Open agent detail modal
+        function openAgentDetail(agentData) {
+            const modal = document.getElementById('agentDetailModal');
+
+            // Populate modal with agent data
+            document.getElementById('modalAgentIcon').textContent = agentData.icon;
+            document.getElementById('modalAgentName').textContent = agentData.name;
+            document.getElementById('modalAgentRole').textContent = agentData.role;
+            document.getElementById('modalAgentStatus').textContent = agentData.status;
+            document.getElementById('modalAgentStatus').className = 
+                `agent-status-badge ${agentData.status.toLowerCase()}`;
+
+            // Stats
+            document.getElementById('modalTasksCompleted').textContent = agentData.tasksCompleted;
+            document.getElementById('modalSuccessRate').textContent = agentData.successRate;
+            document.getElementById('modalResponseTime').textContent = agentData.avgResponseTime;
+            document.getElementById('modalLastActive').textContent = agentData.lastActive;
+
+            // Description
+            document.getElementById('modalAgentDescription').textContent = agentData.description;
+
+            // Capabilities
+            const capabilitiesHtml = agentData.capabilities.map(cap => 
+                `<div class="agent-capability-badge">${cap}</div>`
+            ).join('');
+            document.getElementById('modalAgentCapabilities').innerHTML = capabilitiesHtml;
+
+            // Recent Tasks
+            const tasksHtml = agentData.recentTasks.map(task => `
+                <div class="agent-modal-task-item ${task.status}">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">${task.title}</div>
+                        <div style="font-size: 13px; color: #64748b;">${task.time}</div>
+                    </div>
+                    <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: ${
+                        task.status === 'success' ? '#10b981' : 
+                        task.status === 'pending' ? '#f59e0b' : '#ef4444'
+                    };">
+                        ${task.status}
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('modalAgentTasks').innerHTML = tasksHtml;
+
+            // Show modal
+            modal.style.display = 'flex';
+        }
+
+        // Close agent detail modal
+        function closeAgentDetail() {
+            const modal = document.getElementById('agentDetailModal');
+            modal.style.display = 'none';
+        }
+
+        // Add click handlers to agent cards
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function() {
+                    const agentName = this.querySelector('.agent-name').textContent;
+                    const agentData = AGENTS.find(a => a.name === agentName);
+                    if (agentData) {
+                        openAgentDetail(agentData);
+                    }
+                });
+            });
+        });
+
+</script>
+
+    <!-- Agent Detail Modal -->
+    <div id="agentDetailModal" class="agent-modal" style="display: none;">
+        <div class="agent-modal-overlay" onclick="closeAgentDetail()"></div>
+        <div class="agent-modal-content">
+            <div class="agent-modal-header">
+                <button class="agent-modal-close" onclick="closeAgentDetail()">✕</button>
+                <div class="agent-modal-title-section">
+                    <div class="agent-modal-icon" id="modalAgentIcon">🤖</div>
+                    <div>
+                        <h2 class="agent-modal-title" id="modalAgentName">Agent Name</h2>
+                        <div class="agent-modal-subtitle">
+                            <span class="agent-status-badge" id="modalAgentStatus">Active</span>
+                            <span id="modalAgentRole">Role</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-modal-body">
+                <!-- Stats Grid -->
+                <div class="agent-modal-stats-grid">
+                    <div class="agent-modal-stat">
+                        <div class="agent-modal-stat-label">Tasks Completed</div>
+                        <div class="agent-modal-stat-value" id="modalTasksCompleted">0</div>
+                    </div>
+                    <div class="agent-modal-stat">
+                        <div class="agent-modal-stat-label">Success Rate</div>
+                        <div class="agent-modal-stat-value" id="modalSuccessRate">0%</div>
+                    </div>
+                    <div class="agent-modal-stat">
+                        <div class="agent-modal-stat-label">Avg Response Time</div>
+                        <div class="agent-modal-stat-value" id="modalResponseTime">-</div>
+                    </div>
+                    <div class="agent-modal-stat">
+                        <div class="agent-modal-stat-label">Last Active</div>
+                        <div class="agent-modal-stat-value" id="modalLastActive">-</div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="agent-modal-section">
+                    <h3 class="agent-modal-section-title">📝 Description</h3>
+                    <p class="agent-modal-description" id="modalAgentDescription">Agent description will appear here.</p>
+                </div>
+
+                <!-- Capabilities -->
+                <div class="agent-modal-section">
+                    <h3 class="agent-modal-section-title">⚡ Capabilities</h3>
+                    <div class="agent-capabilities-grid" id="modalAgentCapabilities">
+                        <!-- Capabilities will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Recent Tasks -->
+                <div class="agent-modal-section">
+                    <h3 class="agent-modal-section-title">📋 Recent Tasks</h3>
+                    <div class="agent-modal-tasks" id="modalAgentTasks">
+                        <!-- Tasks will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="agent-modal-section">
+                    <h3 class="agent-modal-section-title">📊 Performance Trend</h3>
+                    <div class="agent-modal-chart">
+                        <canvas id="modalAgentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

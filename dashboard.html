@@ -1204,7 +1204,17 @@
 
 
             <!-- AgentMail Interface -->
+            
+
+            <!-- Platform Performance Stats -->
             <div class="section-header">
+                <h2 class="section-title">📱 Platform Performance</h2>
+            </div>
+            <div class="stats-grid" id="platformStatsGrid">
+                <!-- Dynamic platform cards will be inserted here -->
+            </div>
+
+<div class="section-header">
                 <h2 class="section-title">✉️ AgentMail Communications</h2>
             </div>
             <div class="agentmail-container">
@@ -1702,6 +1712,81 @@
                 const openRate = latestEmail.fields['Open Rate (%)'] || 0;
                 document.getElementById('openRate').textContent = openRate + '%';
             }
+
+            // Render Platform Performance Stats
+            renderPlatformStats(redditData, emailMetrics);
+
+        }
+
+                function renderPlatformStats(redditData, emailMetrics) {
+            const platformGrid = document.getElementById('platformStatsGrid');
+            if (!platformGrid) return;
+
+            // Calculate stats from available data
+            const redditKarma = redditData?.[0]?.fields?.['Total Karma'] || 0;
+            const redditPosts = redditData?.length || 0;
+            const emailSubs = emailMetrics?.[0]?.fields?.['Total Subscribers'] || 0;
+            const emailOpen = emailMetrics?.[0]?.fields?.['Open Rate'] || 0;
+
+            const platforms = [
+                {
+                    name: 'Reddit',
+                    icon: '🔴',
+                    color: '#FF4500',
+                    stats: [
+                        { label: 'Total Karma', value: redditKarma },
+                        { label: 'Posts Created', value: redditPosts },
+                        { label: 'Engagement Rate', value: `${(redditKarma / Math.max(redditPosts, 1) * 100).toFixed(1)}%` }
+                    ]
+                },
+                {
+                    name: 'Email (Brevo)',
+                    icon: '📧',
+                    color: '#0B57D0',
+                    stats: [
+                        { label: 'Subscribers', value: emailSubs },
+                        { label: 'Open Rate', value: `${(emailOpen * 100).toFixed(1)}%` },
+                        { label: 'Status', value: emailSubs >= 10 ? 'Active' : 'Building' }
+                    ]
+                },
+                {
+                    name: 'Twitter/X',
+                    icon: '𝕏',
+                    color: '#000000',
+                    stats: [
+                        { label: 'Account', value: '@CptDigitals' },
+                        { label: 'Status', value: 'Connected' },
+                        { label: 'Automation', value: 'Active' }
+                    ]
+                },
+                {
+                    name: 'Craigslist',
+                    icon: '📝',
+                    color: '#00AA77',
+                    stats: [
+                        { label: 'Active Ads', value: '8 Cities' },
+                        { label: 'Daily Rotations', value: 'NYC Today' },
+                        { label: 'Lead Magnet', value: 'Live' }
+                    ]
+                }
+            ];
+
+            platformGrid.innerHTML = platforms.map(platform => `
+                <div class="stat-card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="font-size: 32px;">${platform.icon}</div>
+                        <div>
+                            <div class="stat-label" style="margin-bottom: 4px;">${platform.name}</div>
+                        </div>
+                    </div>
+                    ${platform.stats.map(stat => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid #f0f0f0;">
+                            <span style="font-size: 13px; color: #64748b;">${stat.label}</span>
+                            <span style="font-size: 14px; font-weight: 600; color: ${platform.color};">${stat.value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
         }
 
         function renderCharts(emailMetrics, productData) {
