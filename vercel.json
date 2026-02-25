@@ -1,18 +1,17 @@
 {
-  "buildCommand": "",
+  "buildCommand": "echo 'Static site - no build needed'",
   "outputDirectory": ".",
-  "installCommand": "",
   "framework": null,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/login",
-      "dest": "/login.html"
+      "source": "/login",
+      "destination": "/public/login.html"
     },
     {
-      "src": "/(.*)\\.html",
-      "dest": "/$1.html"
+      "source": "/",
+      "destination": "/index.html"
     }
   ],
-  "cleanUrls": false,
+  "cleanUrls": true,
   "trailingSlash": false
 }
