@@ -39,8 +39,8 @@
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
         
-        const supabaseUrl = 'https://wxwfrhvqgfpodwzjwlil.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4d2ZyaHZxZ2Zwb2R3emp3bGlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA3MTEyMzYsImV4cCI6MjA1NjI4NzIzNn0.CK7u5J0ZVQNmFP2kYY-MKjFCPZDRwkzgwfpEw3_oMU4';
+        const supabaseUrl = 'https://gbmldrjjwlahiatyvoxo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdibWxkcmpqd2xhaGlhdHl2b3hvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk2MTU5MzUsImV4cCI6MjA1NTE5MTkzNX0.tCJPPcNy9lYz4vKy8nJbXc_WyX3W5X9aHxmS5T-fGEM';
         
         const statusDiv = document.getElementById('status');
         const resultDiv = document.getElementById('result');
@@ -52,7 +52,6 @@
             
             statusDiv.textContent = '⏳ Testing connection to Supabase Auth API...';
             
-            // Try to get current session (this will test CORS)
             const { data, error } = await supabase.auth.getSession();
             
             if (error) {
